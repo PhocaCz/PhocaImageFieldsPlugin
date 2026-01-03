@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="fields" method="upgrade" version="6.0">
+	<name>plg_fields_phocaimage</name>
+	<author>Jan Pavelka (www.phoca.cz)</author>
+	<creationDate>03/01/2026</creationDate>
+	<authorEmail></authorEmail>
+	<authorUrl>https://www.phoca.cz</authorUrl>
+	<copyright>Jan Pavelka</copyright>
+	<license>GNU/GPL</license>
+	<version>6.0.0Beta</version>
+	<description>PLG_FIELDS_PHOCAIMAGE_DESCRIPTION</description>
+	<namespace path="src">Phoca\Plugin\Fields\Phocaimage</namespace>
+	<projectName>PhocaImageFieldsPlugin</projectName>
+
+	<media destination="plg_fields_phocaimage" folder="media">
+		<folder>css</folder>
+		<folder>vendor</folder>
+		<folder>js</folder>
+		<filename>joomla.asset.json</filename>
+	</media>
+
+	<files>
+		<folder>tmpl</folder>
+		<folder>params</folder>
+		<folder>src</folder>
+		<folder>layouts</folder>
+		<folder plugin="phocaimage">services</folder>
+		<filename plugin="phocaimage">manifest.xml</filename>
+	</files>
+
+	<languages>
+		<language tag="en-GB">language/en-GB/en-GB.plg_fields_phocaimage.ini</language>
+		<language tag="en-GB">language/en-GB/en-GB.plg_fields_phocaimage.sys.ini</language>
+	</languages>
+
+	<administration>
+		<languages>
+			<language tag="en-GB">language/en-GB/en-GB.plg_fields_phocaimage.ini</language>
+			<language tag="en-GB">language/en-GB/en-GB.plg_fields_phocaimage.sys.ini</language>
+		</languages>
+	</administration>
+	
+	<config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="folder_structure" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_FOLDER_STRUCTURE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_FOLDER_STRUCTURE_DESC" default="article_id" validate="options">
+                    <option value="article_id">PLG_FIELDS_PHOCAIMAGE_FOLDER_ARTICLE_ID</option>
+                    <option value="year_month">PLG_FIELDS_PHOCAIMAGE_FOLDER_YEAR_MONTH</option>
+                </field>
+                <field name="subfolder" type="text" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_SUBFOLDER_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_SUBFOLDER_DESC" default=""/>
+                <field name="display" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_DISPLAY_LABEL" default="3" validate="options">
+                    <option value="1">PLG_FIELDS_PHOCAIMAGE_AFTER_TITLE</option>
+                    <option value="2">PLG_FIELDS_PHOCAIMAGE_BEFORE_CONTENT</option>
+                    <option value="3">PLG_FIELDS_PHOCAIMAGE_AFTER_CONTENT</option>
+                </field>
+                <field name="max_upload_size" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_DESC" default="5242880" min="1"/>
+            </fieldset>
+            <fieldset name="thumbnails" label="PLG_FIELDS_PHOCAIMAGE_FIELDSET_THUMBNAILS">
+                <field name="medium_width" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MEDIUM_WIDTH_LABEL" default="300" min="50" max="2000"/>
+                <field name="medium_height" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MEDIUM_HEIGHT_LABEL" default="200" min="50" max="2000"/>
+                <field name="large_width" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_LARGE_WIDTH_LABEL" default="1200" min="100" max="4000"/>
+                <field name="large_height" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_LARGE_HEIGHT_LABEL" default="800" min="100" max="4000"/>
+                <field name="crop_to_fit" type="radio" layout="joomla.form.field.radio.switcher" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_CROP_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_CROP_DESC" default="1" class="btn-group btn-group-yesno">
+                     <option value="0">JNO</option>
+					<option value="1">JYES</option>
+
+                </field>
+                <field name="jpeg_quality" type="range" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_JPEG_QUALITY_LABEL" default="85" min="0" max="100" step="5"/>
+                <field name="webp_quality" type="range" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_WEBP_QUALITY_LABEL" default="80" min="0" max="100" step="5"/>
+                <field name="avif_quality" type="range" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_AVIF_QUALITY_LABEL" default="60" min="0" max="100" step="5"/>
+            </fieldset>
+        </fields>
+    </config>
+
+	<updateservers>
+		<server type="extension" name="PLG_FIELDS_PHOCAIMAGE" priority="1"><![CDATA[https://raw.githubusercontent.com/PhocaCz/PhocaImageFieldsPlugin/master/manifest.xml]]></server>
+	</updateservers>
+</extension>

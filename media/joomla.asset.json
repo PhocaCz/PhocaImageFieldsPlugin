@@ -1,0 +1,79 @@
+{
+  "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
+  "name": "plg_fields_phocaimage",
+  "version": "1.0.0",
+  "description": "PhocaImage Fields Plugin Assets",
+  "license": "GPL-2.0-or-later",
+  "assets": [
+    {
+      "name": "plg_fields_phocaimage.backend",
+      "type": "preset",
+      "dependencies": [
+        "plg_fields_phocaimage.sortablejs#script",
+        "plg_fields_phocaimage.backend-script#script",
+        "plg_fields_phocaimage.backend-style#style"
+      ]
+    },
+    {
+      "name": "plg_fields_phocaimage.backend-script",
+      "type": "script",
+      "uri": "media/plg_fields_phocaimage/js/backend-uploader.js",
+      "attributes": {
+        "type": "module"
+      }
+    },
+    {
+      "name": "plg_fields_phocaimage.sortablejs",
+      "type": "script",
+      "uri": "media/plg_fields_phocaimage/vendor/sortable/sortable.min.js"
+    },
+    {
+      "name": "plg_fields_phocaimage.backend-style",
+      "type": "style",
+      "uri": "media/plg_fields_phocaimage/css/backend.css"
+    },
+    {
+      "name": "plg_fields_phocaimage.photoswipe-css",
+      "type": "style",
+      "uri": "media/plg_fields_phocaimage/vendor/photoswipe/photoswipe.css"
+    },
+    {
+      "name": "plg_fields_phocaimage.photoswipe-js",
+      "type": "script",
+      "uri": "media/plg_fields_phocaimage/vendor/photoswipe/photoswipe.esm.min.js",
+      "attributes": {
+        "type": "module"
+      }
+    },
+    {
+      "name": "plg_fields_phocaimage.photoswipe-lightbox-js",
+      "type": "script",
+      "uri": "media/plg_fields_phocaimage/vendor/photoswipe/photoswipe-lightbox.esm.min.js",
+      "attributes": {
+        "type": "module"
+      }
+    },
+    {
+      "name": "plg_fields_phocaimage.frontend-script",
+      "type": "script",
+      "uri": "media/plg_fields_phocaimage/js/frontend-gallery.js",
+      "attributes": {
+        "type": "module"
+      }
+    },
+    {
+      "name": "plg_fields_phocaimage.frontend-style",
+      "type": "style",
+      "uri": "media/plg_fields_phocaimage/css/frontend.css"
+    },
+    {
+      "name": "plg_fields_phocaimage.frontend",
+      "type": "preset",
+      "dependencies": [
+        "plg_fields_phocaimage.photoswipe-css#style",
+        "plg_fields_phocaimage.frontend-script#script",
+        "plg_fields_phocaimage.frontend-style#style"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+.phocaimage-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.phocaimage-item {
+    position: relative;
+    border: none;
+    border-radius: 10px;
+    background: #fff;
+    cursor: move;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.phocaimage-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+}
+
+.phocaimage-thumb {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    overflow: hidden;
+}
+
+.phocaimage-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.phocaimage-info {
+    padding: 8px;
+    background: #fff;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.phocaimage-filename {
+    font-size: 0.8rem;
+    color: #444;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+    padding: 0 4px;
+}
+
+.phocaimage-actions {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+.phocaimage-item:hover .phocaimage-actions {
+    opacity: 1;
+}
+
+.phocaimage-dropzone {
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    padding: 2rem;
+    text-align: center;
+    background: #f9f9f9;
+    transition: all 0.2s;
+}
+
+.phocaimage-dropzone.highlight {
+    border-color: #0d6efd;
+    background: #e9ecef;
+}
+
+.phocaimage-dropzone-content p {
+    margin: 1rem 0;
+    color: #6c757d;
+}
+
+.phocaimage-progress-bar {
+    height: 4px;
+    background: #0d6efd;
+    margin-top: 10px;
+    border-radius: 2px;
+    transition: width 0.3s;
+}
