@@ -38,9 +38,12 @@ $wa->usePreset('plg_fields_phocaimage.frontend');
 // Logic needs to match Extension/Phocaimage.php getUploadPath
 // Since we are in the plugin context, we can use $this helper
 $articleId = $item->id;
+$articleTitle = $item->title;
 $basePath  = $this->getUploadPath((int) $articleId, (int) $field->id) . '/';
 
 $galleryId = 'phocaimage-gallery-' . $articleId;
+
+$altValueType = $this->params->get('alt_value', 3);
 ?>
 
 <div id="<?php echo $galleryId; ?>" class="phocaimage-gallery">
@@ -66,12 +69,21 @@ $galleryId = 'phocaimage-gallery-' . $articleId;
                 $dimensions = ['width' => $dims[0], 'height' => $dims[1]];
             }
         }
+
+        if ($altValueType == 1) {
+            $altValue = '';
+        } else if ($altValueType == 2) {
+            $altValue = htmlspecialchars($filename, ENT_QUOTES, 'UTF-8');
+        } else {
+            $altValue = htmlspecialchars($articleTitle, ENT_QUOTES, 'UTF-8');
+        }
+
     ?>
         <a href="<?php echo Uri::root() . $lightboxImage; ?>"
            data-pswp-width="<?php echo $dimensions['width']; ?>"
            data-pswp-height="<?php echo $dimensions['height']; ?>"
            target="_blank">
-            <img src="<?php echo Uri::root() . $thumbM; ?>" alt="<?php echo htmlspecialchars($filename, ENT_QUOTES, 'UTF-8'); ?>">
+            <img src="<?php echo Uri::root() . $thumbM; ?>" alt="<?php echo $altValue ?>">
         </a>
     <?php endforeach; ?>
 </div>

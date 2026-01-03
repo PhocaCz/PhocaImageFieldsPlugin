@@ -7,7 +7,7 @@
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>
 	<license>GNU/GPL</license>
-	<version>6.0.0Beta2</version>
+	<version>6.0.0Beta3</version>
 	<description>PLG_FIELDS_PHOCAIMAGE_DESCRIPTION</description>
 	<namespace path="src">Phoca\Plugin\Fields\Phocaimage</namespace>
 	<projectName>PhocaImageFieldsPlugin</projectName>
@@ -53,6 +53,13 @@
                     <option value="2">PLG_FIELDS_PHOCAIMAGE_BEFORE_CONTENT</option>
                     <option value="3">PLG_FIELDS_PHOCAIMAGE_AFTER_CONTENT</option>
                 </field>
+
+				<field name="alt_value" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_ALT_VALUE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_ALT_VALUE_DESC" default="3" validate="options">
+                    <option value="1">PLG_FIELDS_PHOCAIMAGE_EMPTY_STRING</option>
+                    <option value="2">PLG_FIELDS_PHOCAIMAGE_FILENAME</option>
+                    <option value="3">PLG_FIELDS_PHOCAIMAGE_ARTICLE_TITLE</option>
+                </field>
+
                 <field name="max_upload_size" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_DESC" default="5242880" min="1"/>
             </fieldset>
             <fieldset name="thumbnails" label="PLG_FIELDS_PHOCAIMAGE_FIELDSET_THUMBNAILS">
