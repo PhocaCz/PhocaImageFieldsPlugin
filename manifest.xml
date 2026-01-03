@@ -11,7 +11,7 @@
 		<downloads>
 			<downloadurl type="full" format="zip">https://github.com/PhocaCz/PhocaImageFieldsPlugin/releases/download/6.0.0Beta3/plg_fields_phocaimage_v6.0.0Beta3.zip</downloadurl>
 		</downloads>
-		<sha512>794306721f02bec6b2ce773ae313d962f5410db5f90193d0ee7bbbb7db52e0b2dba8a21a4359e542d59384c6204b7ee32267cd0fc2ad9b2f844bd90ec31de13b</sha512>
+		<sha512>517a5eb484fcffd824eef62d065f2ca8e158578c99a1f16e04fa3fb4416a192b90863ef5b248286068a5c97af735b1efd1fc29c48cc1bbc74fe965b7d1eb49ab</sha512>
 		<tags>
 			<tag>stable</tag>
 		</tags>
