@@ -20,6 +20,7 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Filesystem\Folder;
 use Joomla\Registry\Registry;
 
 // phpcs:disable PSR1.Files.SideEffects
@@ -133,6 +134,8 @@ class PhocaimageField extends FormField
         $plugin    = PluginHelper::getPlugin('fields', 'phocaimage');
         $params    = new Registry($plugin->params ?? '');
         $subfolder = trim($params->get('subfolder', ''), '/ ');
+        $subfolder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $subfolder);
+        $subfolder = Folder::makeSafe($subfolder);
         $basePath  = 'images/phocaimage';
 
         if ($subfolder !== '') {
