@@ -406,18 +406,29 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         }
 
         $uploaded = [];
+        $message = [];
 
         foreach ($files as $file) {
             $result = $this->processUploadedFile($file, $fullPath);
             if ($result['success']) {
                 $uploaded[] = $result;
+            } else {
+                if (isset($result['message']) && $result['message'] != '') {
+                    $message[] = $result['message'];
+                }
             }
+        }
+
+        $messageOutput = '';
+        if (!empty($message)) {
+            $messageOutput = implode(", ", $message);
         }
 
         return [
             'success'  => !empty($uploaded),
             'files'    => $uploaded,
             'path'     => $uploadPath,
+            'message'  => $messageOutput
         ];
     }
 
@@ -436,10 +447,14 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         // Validate file size
         $maxSizeBytes = (int) $this->params->get('max_upload_size', 5242880);
 
+        if (!isset($file['name'])) {
+            $file['name'] = '';
+        }
+
         if ($file['size'] > $maxSizeBytes) {
             return [
                 'success' => false,
-                'message' => Text::sprintf('PLG_FIELDS_PHOCAIMAGE_ERROR_FILE_TOO_LARGE', $maxSizeBytes)
+                'message' => $file['name']. ": " . Text::sprintf('PLG_FIELDS_PHOCAIMAGE_ERROR_FILE_TOO_LARGE', $maxSizeBytes)
             ];
         }
 
@@ -449,7 +464,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         $mimeType     = $finfo->file($file['tmp_name']);
 
         if (!in_array($mimeType, $allowedMimes, true)) {
-            return ['success' => false, 'message' => Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_INVALID_TYPE')];
+            return ['success' => false, 'message' => $file['name']. ": " .  Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_INVALID_TYPE')];
         }
 
         // Sanitize filename
@@ -467,7 +482,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
 
         // Move uploaded file
         if (!move_uploaded_file($file['tmp_name'], $destFile)) {
-            return ['success' => false, 'message' => Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_MOVE_FILE')];
+            return ['success' => false, 'message' => $file['name']. ": " . Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_MOVE_FILE')];
         }
 
         // Generate thumbnails
