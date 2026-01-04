@@ -284,7 +284,7 @@ class PhocaImageUploader {
             <div class="phocaimage-thumb">
                 <img src="${thumbUrl}" alt="${file.filename}" loading="lazy">
             </div>
-            <div class="phocaimage-info">
+            <div class="phocaimage-info ${captionHtml ? 'phocaimage-caption-box' : ''}">
                 ${captionHtml}
                 <span class="phocaimage-filename">${file.filename}</span>
             </div>
