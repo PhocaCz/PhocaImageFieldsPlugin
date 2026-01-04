@@ -25,7 +25,8 @@ $wrapperId = 'phocaimage-wrapper-' . $data['id'];
      data-article-id="<?php echo $data['articleId']; ?>"
      data-field-id="<?php echo $data['fieldId']; ?>"
      data-upload-path="<?php echo $data['uploadPath']; ?>"
-     data-csrf-token="<?php echo $data['csrfToken']; ?>">
+     data-csrf-token="<?php echo $data['csrfToken']; ?>"
+     data-enable-caption="<?php echo (int)$data['enableCaption']; ?>">
 
     <!-- Hidden Input for Data Storage -->
     <input type="hidden" name="<?php echo $data['name']; ?>" id="<?php echo $data['id']; ?>" class="phocaimage-data"
@@ -54,8 +55,17 @@ $wrapperId = 'phocaimage-wrapper-' . $data['id'];
                 <div class="phocaimage-thumb">
                     <img src="<?php echo $thumbUrl; ?>" alt="<?php echo htmlspecialchars($filename, ENT_QUOTES, 'UTF-8'); ?>">
                 </div>
-                <div class="phocaimage-info">
-                    <span class="phocaimage-filename"><?php echo htmlspecialchars($filename, ENT_QUOTES, 'UTF-8'); ?></span>
+                <div class="phocaimage-info <?php if ($data['enableCaption']) { echo 'phocaimage-caption-box';} ?>">
+                    <?php if ($data['enableCaption']): ?>
+                        <div class="phocaimage-caption-container">
+                            <input type="text"
+                                   class="form-control form-control-sm phocaimage-caption-input"
+                                   placeholder="<?php echo Text::_('PLG_FIELDS_PHOCAIMAGE_CAPTION'); ?>"
+                                   title="<?php echo Text::_('PLG_FIELDS_PHOCAIMAGE_CAPTION_DESC'); ?>"
+                                   value="<?php echo htmlspecialchars($image['caption'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                        </div>
+                    <?php endif; ?>
+                    <div class="phocaimage-filename"><?php echo htmlspecialchars($filename, ENT_QUOTES, 'UTF-8'); ?></div>
                 </div>
                 <div class="phocaimage-actions">
                     <button type="button" class="btn btn-danger btn-sm phocaimage-delete-btn"

@@ -44,7 +44,8 @@ class PhocaImageUploader {
             uploadPath: wrapper.dataset.uploadPath,
             articleId: wrapper.dataset.articleId,
             fieldId: wrapper.dataset.fieldId,
-            csrfToken: wrapper.dataset.csrfToken
+            csrfToken: wrapper.dataset.csrfToken,
+            enableCaption: parseInt(wrapper.dataset.enableCaption) === 1
         };
 
         this.init();
@@ -55,6 +56,7 @@ class PhocaImageUploader {
         this.initSelectButton();
         this.initSortable();
         this.initDeleteButtons();
+        this.initCaptionInputs();
     }
 
     initDragAndDrop() {
@@ -121,6 +123,14 @@ class PhocaImageUploader {
         });
     }
 
+    initCaptionInputs() {
+        this.gallery.addEventListener('input', (e) => {
+            if (e.target.classList.contains('phocaimage-caption-input')) {
+                this.updateStateFromDOM();
+            }
+        });
+    }
+
     handleFiles(files) {
         if (!files.length) return;
 
@@ -178,7 +188,7 @@ class PhocaImageUploader {
                             errorMsg = response.message;
                         }
 
-                        this.showError(errorMsg + ' (' + Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_ERROR_CHECK_CONSOLE_FOR_DETAILS') +')');
+                        this.showError(errorMsg + ' (' + Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_ERROR_CHECK_CONSOLE_FOR_DETAILS') + ')');
                     }
                 } catch (e) {
                     this.showError(Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_ERROR_INVALID_SERVER_RESPONSE'));
@@ -247,11 +257,25 @@ class PhocaImageUploader {
 
         const thumbUrl = this.config.uploadPath + '/' + thumbFilename;
 
+        let captionHtml = '';
+        if (this.config.enableCaption) {
+            captionHtml = `
+                <div class="phocaimage-caption-container mb-2">
+                    <input type="text" 
+                           class="form-control form-control-sm phocaimage-caption-input" 
+                           placeholder="${Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_CAPTION')}"
+                           title="${Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_CAPTION_DESC')}"
+                           value="${file.caption || ''}">
+                </div>
+            `;
+        }
+
         item.innerHTML = `
             <div class="phocaimage-thumb">
                 <img src="${thumbUrl}" alt="${file.filename}" loading="lazy">
             </div>
             <div class="phocaimage-info">
+                ${captionHtml}
                 <span class="phocaimage-filename">${file.filename}</span>
             </div>
             <div class="phocaimage-actions">
@@ -306,9 +330,13 @@ class PhocaImageUploader {
         const items = this.gallery.querySelectorAll('.phocaimage-item');
 
         items.forEach((item, index) => {
+            const captionInput = item.querySelector('.phocaimage-caption-input');
+            const caption = captionInput ? captionInput.value : '';
+
             newImages.push({
                 filename: item.dataset.filename,
-                order: index + 1
+                order: index + 1,
+                caption: caption
             });
         });
 

@@ -10,6 +10,26 @@ document.addEventListener('DOMContentLoaded', () => {
             children: 'a',
             pswpModule: PhotoSwipe
         });
+
+        lightbox.on('uiRegister', function () {
+            lightbox.pswp.ui.registerElement({
+                name: 'custom-caption',
+                order: 9,
+                isSettable: true,
+                appendTo: 'root',
+                onInit: (el, pswp) => {
+                    pswp.on('change', () => {
+                        const currSlideElement = pswp.currSlide.data.element;
+                        let captionHTML = '';
+                        if (currSlideElement) {
+                            captionHTML = currSlideElement.getAttribute('data-pswp-caption') || '';
+                        }
+                        el.innerHTML = '<span>' + captionHTML + '</span>';
+                    });
+                }
+            });
+        });
+
         lightbox.init();
     });
 });

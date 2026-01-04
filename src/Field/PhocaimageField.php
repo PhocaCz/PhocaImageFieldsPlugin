@@ -95,6 +95,10 @@ class PhocaimageField extends FormField
         // Determine upload path for display
         $uploadPath = $this->getUploadPath($articleId, $fieldId);
 
+        // Get plugin params
+        $plugin    = PluginHelper::getPlugin('fields', 'phocaimage');
+        $params    = new Registry($plugin->params ?? '');
+
         // Prepare data for layout
         $data = [
             'id'             => $this->id,
@@ -107,6 +111,7 @@ class PhocaimageField extends FormField
             'articleId'      => $articleId,
             'fieldId'        => $fieldId,
             'csrfToken'      => Session::getFormToken(),
+            'enableCaption'  => (bool) $params->get('enable_caption', 0),
             'messages'       => [
                 'deleteConfirm' => Text::_('PLG_FIELDS_PHOCAIMAGE_CONFIRM_DELETE'),
                 'uploadError'   => Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_UPLOAD'),
