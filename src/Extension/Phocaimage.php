@@ -53,15 +53,19 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
      */
     private function getBasePath(): string
     {
+        $folder = trim($this->params->get('folder', 'phocaimage'), '/ ');
+        $folder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $folder);
+        $folder = Folder::makeSafe($folder);
+
         $subfolder = trim($this->params->get('subfolder', ''), '/ ');
         $subfolder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $subfolder);
         $subfolder = Folder::makeSafe($subfolder);
 
         if ($subfolder !== '') {
-            return 'images/phocaimage/' . $subfolder;
+            return 'images/'.$folder.'/' . $subfolder;
         }
 
-        return 'images/phocaimage';
+        return 'images/'.$folder;
     }
 
     /**

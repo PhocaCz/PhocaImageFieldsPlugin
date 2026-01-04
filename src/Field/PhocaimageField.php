@@ -138,10 +138,13 @@ class PhocaimageField extends FormField
         // Get plugin params robustly
         $plugin    = PluginHelper::getPlugin('fields', 'phocaimage');
         $params    = new Registry($plugin->params ?? '');
+        $folder = trim($params->get('folder', 'phocaimage'), '/ ');
+        $folder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $folder);
+        $folder = Folder::makeSafe($folder);
         $subfolder = trim($params->get('subfolder', ''), '/ ');
         $subfolder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $subfolder);
         $subfolder = Folder::makeSafe($subfolder);
-        $basePath  = 'images/phocaimage';
+        $basePath  = 'images/'.$folder;
 
         if ($subfolder !== '') {
             $basePath .= '/' . $subfolder;
