@@ -2,12 +2,12 @@
 <extension type="plugin" group="fields" method="upgrade" version="6.0">
 	<name>plg_fields_phocaimage</name>
 	<author>Jan Pavelka (www.phoca.cz)</author>
-	<creationDate>03/01/2026</creationDate>
+	<creationDate>04/01/2026</creationDate>
 	<authorEmail></authorEmail>
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>
 	<license>GNU/GPL</license>
-	<version>6.0.0Beta3</version>
+	<version>6.0.0Beta4</version>
 	<description>PLG_FIELDS_PHOCAIMAGE_DESCRIPTION</description>
 	<namespace path="src">Phoca\Plugin\Fields\Phocaimage</namespace>
 	<projectName>PhocaImageFieldsPlugin</projectName>
@@ -58,6 +58,13 @@
                     <option value="1">PLG_FIELDS_PHOCAIMAGE_EMPTY_STRING</option>
                     <option value="2">PLG_FIELDS_PHOCAIMAGE_FILENAME</option>
                     <option value="3">PLG_FIELDS_PHOCAIMAGE_ARTICLE_TITLE</option>
+                </field>
+
+                <field name="sync_article_image" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_SYNC_ARTICLE_IMAGE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_SYNC_ARTICLE_IMAGE_DESC" default="0" validate="options">
+                    <option value="0">PLG_FIELDS_PHOCAIMAGE_NONE</option>
+                    <option value="1">PLG_FIELDS_PHOCAIMAGE_INTRO_IMAGE</option>
+                    <option value="2">PLG_FIELDS_PHOCAIMAGE_FULL_IMAGE</option>
+                    <option value="3">PLG_FIELDS_PHOCAIMAGE_BOTH_IMAGES</option>
                 </field>
 
                 <field name="max_upload_size" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_DESC" default="5242880" min="1"/>

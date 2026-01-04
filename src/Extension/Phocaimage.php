@@ -281,19 +281,33 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         $context = $event->getContext();
         $item    = $event->getItem();
         $isNew   = $event->getIsNew();
-        $data    = $event->getData();
 
         // Only process articles
         if ($context !== 'com_content.article' && $context !== 'com_content.form') {
             return;
         }
 
-        // Only process newly created articles
-        if (!$isNew || empty($item->id)) {
+        if (empty($item->id)) {
             return;
         }
 
-        $this->migrateTempFolder((int) $item->id);
+        if ($isNew) {
+            $this->migrateTempFolder((int) $item->id);
+        }
+
+        $title = $item->title ?? '';
+
+        // If title is not in item, we might need to get it from data or DB
+        if (empty($title)) {
+            $db = $this->getDatabase();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('title'))
+                ->from($db->quoteName('#__content'))
+                ->where($db->quoteName('id') . ' = ' . (int) $item->id);
+            $title = (string) $db->setQuery($query)->loadResult();
+        }
+
+        $this->syncArticleImage((int) $item->id, $title);
     }
 
     /**
@@ -817,5 +831,106 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         $dates[$articleId] = $date ?: date('Y-m-d H:i:s');
 
         return $dates[$articleId];
+    }
+
+    /**
+     * Synchronize the first image from phocaimage field to article intro/full image.
+     *
+     * @param   int  $articleId  The article ID.
+     *
+     * @return  void
+     *
+     * @since   1.0.0
+     */
+    private function syncArticleImage(int $articleId, string $title = ''): void
+    {
+        $syncType = (int) $this->params->get('sync_article_image', 0);
+        if ($syncType === 0) {
+            return;
+        }
+
+        $db = $this->getDatabase();
+
+        // Get all phocaimage fields for this article
+        $query = $db->getQuery(true)
+            ->select($db->quoteName(['v.value']))
+            ->from($db->quoteName('#__fields_values', 'v'))
+            ->join('INNER', $db->quoteName('#__fields', 'f'), $db->quoteName('f.id') . ' = ' . $db->quoteName('v.field_id'))
+            ->where($db->quoteName('f.type') . ' = ' . $db->quote('phocaimage'))
+            ->where($db->quoteName('v.item_id') . ' = ' . $db->quote($articleId))
+            ->order($db->quoteName('f.ordering') . ' ASC');
+
+        $rows = $db->setQuery($query)->loadObjectList();
+
+        if (empty($rows)) {
+            return;
+        }
+
+        // We take the first phocaimage field that has images
+        $foundImages = [];
+        foreach ($rows as $row) {
+            if (empty($row->value)) {
+                continue;
+            }
+            $images = json_decode($row->value, true);
+            if (is_array($images) && !empty($images)) {
+                $foundImages = $images;
+                break;
+            }
+        }
+
+        if (empty($foundImages)) {
+            return;
+        }
+
+        $firstImage = $foundImages[0];
+        $filename   = $firstImage['filename'] ?? '';
+        if (empty($filename)) {
+            return;
+        }
+
+        // Construct path to large thumbnail
+        $uploadPath = $this->getPermanentPath($articleId);
+        $thumbPath  = $uploadPath . '/phoca_thumb_l_' . $filename;
+
+        // Update article record
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('images'))
+            ->from($db->quoteName('#__content'))
+            ->where($db->quoteName('id') . ' = ' . $db->quote($articleId));
+        $imagesJson = $db->setQuery($query)->loadResult();
+
+        $articleImages = json_decode($imagesJson ?: '{}', true);
+        if (!is_array($articleImages)) {
+            $articleImages = [];
+        }
+
+        $changed = false;
+
+        // Intro Image sync - only if empty
+        if (($syncType === 1 || $syncType === 3) && empty($articleImages['image_intro'])) {
+            $articleImages['image_intro'] = $thumbPath;
+            if (!empty($title)) {
+                $articleImages['image_intro_alt'] = $title;
+            }
+            $changed = true;
+        }
+
+        // Full Image sync - only if empty
+        if (($syncType === 2 || $syncType === 3) && empty($articleImages['image_fulltext'])) {
+            $articleImages['image_fulltext'] = $thumbPath;
+            if (!empty($title)) {
+                $articleImages['image_fulltext_alt'] = $title;
+            }
+            $changed = true;
+        }
+
+        if ($changed) {
+            $query = $db->getQuery(true)
+                ->update($db->quoteName('#__content'))
+                ->set($db->quoteName('images') . ' = ' . $db->quote(json_encode($articleImages)))
+                ->where($db->quoteName('id') . ' = ' . $db->quote($articleId));
+            $db->setQuery($query)->execute();
+        }
     }
 }
