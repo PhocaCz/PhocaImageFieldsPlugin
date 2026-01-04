@@ -21,6 +21,7 @@ class PhocaImageUploader {
         this.dropzone = wrapper.querySelector('.phocaimage-dropzone');
         this.fileInput = wrapper.querySelector('.phocaimage-file-input');
         this.selectBtn = wrapper.querySelector('.phocaimage-select-btn');
+        this.deleteAllBtn = wrapper.querySelector('.phocaimage-delete-all-btn');
         this.gallery = wrapper.querySelector('.phocaimage-gallery');
         this.progressBar = wrapper.querySelector('.phocaimage-progress-bar');
         this.errorContainer = wrapper.querySelector('.phocaimage-error');
@@ -45,7 +46,8 @@ class PhocaImageUploader {
             articleId: wrapper.dataset.articleId,
             fieldId: wrapper.dataset.fieldId,
             csrfToken: wrapper.dataset.csrfToken,
-            enableCaption: parseInt(wrapper.dataset.enableCaption) === 1
+            enableCaption: parseInt(wrapper.dataset.enableCaption) === 1,
+            enableDeleteAll: parseInt(wrapper.dataset.enableDeleteAll) === 1
         };
 
         this.init();
@@ -57,6 +59,7 @@ class PhocaImageUploader {
         this.initSortable();
         this.initDeleteButtons();
         this.initCaptionInputs();
+        this.initDeleteAllButton();
     }
 
     initDragAndDrop() {
@@ -128,6 +131,13 @@ class PhocaImageUploader {
             if (e.target.classList.contains('phocaimage-caption-input')) {
                 this.updateStateFromDOM();
             }
+        });
+    }
+
+    initDeleteAllButton() {
+        if (!this.deleteAllBtn) return;
+        this.deleteAllBtn.addEventListener('click', () => {
+            this.deleteAllImages();
         });
     }
 
@@ -322,6 +332,44 @@ class PhocaImageUploader {
                 console.error('Error:', error);
                 alert(Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_ERROR_WHILE_DELETING'));
             });
+    }
+
+    async deleteAllImages() {
+        if (!confirm(Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_CONFIRM_DELETE_ALL'))) return;
+
+        const items = Array.from(this.gallery.querySelectorAll('.phocaimage-item'));
+        if (items.length === 0) return;
+
+        // Sequential delete to not overwhelm the server and reuse existing logic
+        for (const item of items) {
+            const filename = item.dataset.filename;
+            const formData = new FormData();
+            formData.append(this.config.csrfToken, 1);
+            formData.append('filename', filename);
+            formData.append('article_id', this.config.articleId);
+            formData.append('field_id', this.config.fieldId);
+            formData.append('action', 'delete');
+
+            try {
+                const response = await fetch(this.config.deleteUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                const result = data.data || data;
+
+                if (result.success) {
+                    this.images = this.images.filter(img => img.filename !== filename);
+                    item.remove();
+                } else {
+                    console.error('Failed to delete ' + filename, result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting ' + filename, error);
+            }
+        }
+
+        this.commitState();
     }
 
     updateStateFromDOM() {

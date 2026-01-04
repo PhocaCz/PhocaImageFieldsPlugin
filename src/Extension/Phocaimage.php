@@ -145,6 +145,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         Text::script('PLG_FIELDS_PHOCAIMAGE_ARE_YOU_SURE_DELETE_IMAGE');
         Text::script('PLG_FIELDS_PHOCAIMAGE_CAPTION');
         Text::script('PLG_FIELDS_PHOCAIMAGE_CAPTION_DESC');
+        Text::script('PLG_FIELDS_PHOCAIMAGE_CONFIRM_DELETE_ALL');
 
 
         return $fieldNode;

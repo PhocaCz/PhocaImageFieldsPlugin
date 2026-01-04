@@ -26,7 +26,8 @@ $wrapperId = 'phocaimage-wrapper-' . $data['id'];
      data-field-id="<?php echo $data['fieldId']; ?>"
      data-upload-path="<?php echo $data['uploadPath']; ?>"
      data-csrf-token="<?php echo $data['csrfToken']; ?>"
-     data-enable-caption="<?php echo (int)$data['enableCaption']; ?>">
+     data-enable-caption="<?php echo (int)$data['enableCaption']; ?>"
+     data-enable-delete-all="<?php echo (int)$data['enableDeleteAll']; ?>">
 
     <!-- Hidden Input for Data Storage -->
     <input type="hidden" name="<?php echo $data['name']; ?>" id="<?php echo $data['id']; ?>" class="phocaimage-data"
@@ -40,6 +41,12 @@ $wrapperId = 'phocaimage-wrapper-' . $data['id'];
             <button type="button" class="btn btn-primary phocaimage-select-btn">
                 <?php echo Text::_('PLG_FIELDS_PHOCAIMAGE_SELECT_FILES'); ?>
             </button>
+            <?php if ($data['enableDeleteAll']): ?>
+                <button type="button" class="btn btn-danger phocaimage-delete-all-btn">
+                    <span class="icon-trash" aria-hidden="true"></span>
+                    <?php echo Text::_('PLG_FIELDS_PHOCAIMAGE_DELETE_ALL'); ?>
+                </button>
+            <?php endif; ?>
             <input type="file" multiple accept="image/*" class="phocaimage-file-input" style="display:none;">
         </div>
         <div class="phocaimage-progress-bar" style="width: 0%; display: none;"></div>

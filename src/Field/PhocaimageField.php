@@ -112,6 +112,7 @@ class PhocaimageField extends FormField
             'fieldId'        => $fieldId,
             'csrfToken'      => Session::getFormToken(),
             'enableCaption'  => (bool) $params->get('enable_caption', 0),
+            'enableDeleteAll' => (bool) $params->get('enable_delete_all', 0),
             'messages'       => [
                 'deleteConfirm' => Text::_('PLG_FIELDS_PHOCAIMAGE_CONFIRM_DELETE'),
                 'uploadError'   => Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_UPLOAD'),
