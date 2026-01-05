@@ -26,6 +26,7 @@ use Joomla\Component\Fields\Administrator\Plugin\FieldsPlugin;
 use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Event\EventInterface;
 use Joomla\Event\SubscriberInterface;
+use Joomla\Registry\Registry;
 use Phoca\Plugin\Fields\Phocaimage\Helper\ImageHelper;
 
 // phpcs:disable PSR1.Files.SideEffects
@@ -266,7 +267,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
     /**
      * Core gallery rendering logic.
      */
-    private function renderGallery($field, $item)
+   /* private function renderGallery($field, $item)
     {
         // Frontend vs Backend layout
         if ($this->getApplication()->isClient('administrator')) {
@@ -281,6 +282,23 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
 
         // Prepare data for layout
         // The layout expects $field and $item
+        ob_start();
+        include $path;
+        return ob_get_clean();
+    }*/
+
+    private function renderGallery($field, $item)
+    {
+        // Joomla's helper automatically checks:
+        // 1. templates/your_template/html/plg_fields_phocaimage/phocaimage.php
+        // 2. plugins/fields/phocaimage/tmpl/phocaimage.php
+        // override example: templates/phoca_premiere/html/plg_fields_phocaimage/phocaimage.php
+        $path = PluginHelper::getLayoutPath('fields', 'phocaimage', 'phocaimage');
+        if (!$path || !file_exists($path)) {
+            return '';
+        }
+
+        // Prepare data for layout
         ob_start();
         include $path;
         return ob_get_clean();
@@ -611,8 +629,6 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
      */
     public function getUploadPath(int $articleId, int $fieldId): string
     {
-        $folderStructure = $this->params->get('folder_structure', 'article_id');
-
         if ($articleId === 0) {
             // New article - use temp folder with session hash
             $session  = Factory::getApplication()->getSession();
@@ -620,13 +636,9 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
             return $this->getBasePath() . '/temp_' . $tempHash;
         }
 
-        if ($folderStructure === 'year_month') {
-            $created   = $this->getArticleDate($articleId);
-            $yearMonth = date('Y_m', strtotime($created));
-            return $this->getBasePath() . '/' . $yearMonth . '/' . $articleId;
-        }
-
-        return $this->getBasePath() . '/' . $articleId;
+        // Use central folder generation
+        $date = $this->getArticleDate($articleId);
+        return self::getFolder($this->params, $articleId, $date);
     }
 
     /**
@@ -640,15 +652,8 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
      */
     private function getPermanentPath(int $articleId): string
     {
-        $folderStructure = $this->params->get('folder_structure', 'article_id');
-
-        if ($folderStructure === 'year_month') {
-            $created   = $this->getArticleDate($articleId);
-            $yearMonth = date('Y_m', strtotime($created));
-            return $this->getBasePath() . '/' . $yearMonth . '/' . $articleId;
-        }
-
-        return $this->getBasePath() . '/' . $articleId;
+        $date = $this->getArticleDate($articleId);
+        return self::getFolder($this->params, $articleId, $date);
     }
 
     /**
@@ -740,7 +745,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         $permanentPath = str_replace($this->getBasePath() . '/', '', $permanentPath);
 
         $newValue = str_replace($tempPath, $permanentPath, $value);
-
+        
         // Update the value
         $query = $db->getQuery(true)
             ->update($db->quoteName('#__fields_values'))
@@ -765,11 +770,18 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         $folderStructure = $this->params->get('folder_structure', 'article_id');
         $basePath        = JPATH_ROOT . '/' . $this->getBasePath();
 
-        if ($folderStructure === 'year_month') {
-            // Search for the article folder in all year_month directories
-            $yearMonthDirs = Folder::folders($basePath);
-            foreach ($yearMonthDirs as $dir) {
-                if (preg_match('/^\d{4}_\d{2}$/', $dir)) {
+        if ($folderStructure === 'year' || $folderStructure === 'year_month' || $folderStructure === 'year_month_day') {
+            // Define regex patterns for different structures
+            $pattern = match($folderStructure) {
+                'year'           => '/^\d{4}$/',
+                'year_month'     => '/^\d{4}_\d{2}$/',
+                'year_month_day' => '/^\d{4}_\d{2}_\d{2}$/',
+            };
+
+            // Search for the article folder in all matching directories
+            $dirs = Folder::folders($basePath);
+            foreach ($dirs as $dir) {
+                if (preg_match($pattern, $dir)) {
                     $articlePath = $basePath . '/' . $dir . '/' . $articleId;
                     if (is_dir($articlePath)) {
                         Folder::delete($articlePath);
@@ -782,6 +794,49 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
                 Folder::delete($articlePath);
             }
         }
+    }
+
+    /**
+     * Get the folder path based on configuration.
+     *
+     * @param   Registry     $params     The plugin parameters.
+     * @param   int          $articleId  The article ID.
+     * @param   string|null  $date       The article creation date.
+     *
+     * @return  string
+     *
+     * @since   6.0.0
+     */
+    public static function getFolder(Registry $params, int $articleId, ?string $date = null): string
+    {
+        $folder = trim($params->get('folder', 'phocaimage'), '/ ');
+        $folder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $folder);
+        $folder = Folder::makeSafe($folder);
+
+        $subfolder = trim($params->get('subfolder', ''), '/ ');
+        $subfolder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $subfolder);
+        $subfolder = Folder::makeSafe($subfolder);
+
+        $basePath = 'images/' . $folder;
+
+        if ($subfolder !== '') {
+            $basePath .= '/' . $subfolder;
+        }
+
+        $folderStructure = $params->get('folder_structure', 'article_id');
+        $dateStr         = $date ?: 'now';
+        $timestamp       = strtotime($dateStr);
+
+        if ($timestamp === false) {
+            $timestamp = time();
+        }
+
+        return match ($folderStructure) {
+            'year'           => $basePath . '/' . date('Y', $timestamp) . '/' . $articleId,
+            'year_month'     => $basePath . '/' . date('Y_m', $timestamp) . '/' . $articleId,
+            'year_month_day' => $basePath . '/' . date('Y_m_d', $timestamp) . '/' . $articleId,
+            default          => $basePath . '/' . $articleId,
+        };
     }
 
     /**

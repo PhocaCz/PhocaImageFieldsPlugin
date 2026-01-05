@@ -139,38 +139,32 @@ class PhocaimageField extends FormField
         // Get plugin params robustly
         $plugin    = PluginHelper::getPlugin('fields', 'phocaimage');
         $params    = new Registry($plugin->params ?? '');
-        $folder = trim($params->get('folder', 'phocaimage'), '/ ');
-        $folder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $folder);
-        $folder = Folder::makeSafe($folder);
-        $subfolder = trim($params->get('subfolder', ''), '/ ');
-        $subfolder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $subfolder);
-        $subfolder = Folder::makeSafe($subfolder);
-        $basePath  = 'images/'.$folder;
-
-        if ($subfolder !== '') {
-            $basePath .= '/' . $subfolder;
-        }
-
+        
         if ($articleId === 0) {
+            $folder = trim($params->get('folder', 'phocaimage'), '/ ');
+            $folder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $folder);
+            $folder = Folder::makeSafe($folder);
+            $subfolder = trim($params->get('subfolder', ''), '/ ');
+            $subfolder = preg_replace('/[^a-zA-Z0-9_\-]/', '', $subfolder);
+            $subfolder = Folder::makeSafe($subfolder);
+            $basePath  = 'images/'.$folder;
+    
+            if ($subfolder !== '') {
+                $basePath .= '/' . $subfolder;
+            }
+
             $session  = Factory::getApplication()->getSession();
             $tempHash = substr(md5($session->getId() . $fieldId), 0, 12);
             return $basePath . '/temp_' . $tempHash;
         }
 
-        $folderStructure = $params->get('folder_structure', 'article_id');
+        $db    = Factory::getContainer()->get(\Joomla\Database\DatabaseInterface::class);
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('created'))
+            ->from($db->quoteName('#__content'))
+            ->where($db->quoteName('id') . ' = ' . (int) $articleId);
+        $date = $db->setQuery($query)->loadResult();
 
-        if ($folderStructure === 'year_month') {
-            $db    = Factory::getContainer()->get(\Joomla\Database\DatabaseInterface::class);
-            $query = $db->getQuery(true)
-                ->select($db->quoteName('created'))
-                ->from($db->quoteName('#__content'))
-                ->where($db->quoteName('id') . ' = ' . (int) $articleId);
-            $date = $db->setQuery($query)->loadResult();
-
-            $yearMonth = date('Y_m', strtotime($date ?: 'now'));
-            return $basePath . '/' . $yearMonth . '/' . $articleId;
-        }
-
-        return $basePath . '/' . $articleId;
+        return \Phoca\Plugin\Fields\Phocaimage\Extension\Phocaimage::getFolder($params, $articleId, $date);
     }
 }

@@ -266,7 +266,6 @@ class PhocaImageUploader {
         }
 
         const thumbUrl = this.config.uploadPath + '/' + thumbFilename;
-
         let captionHtml = '';
         if (this.config.enableCaption) {
             captionHtml = `

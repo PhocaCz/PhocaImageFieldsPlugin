@@ -56,6 +56,7 @@ $layoutClass = $layout === 'pi-flex' ? ' pi-flex' : ' pi-grid';
         $thumbM   = $basePath . 'phoca_thumb_m_' . $filename;
         $thumbL   = $basePath . 'phoca_thumb_l_' . $filename; // Used for lightbox if we want
 
+
         // For PhotoSwipe we serve large thumbnail
         $lightboxImage = $thumbL;
 

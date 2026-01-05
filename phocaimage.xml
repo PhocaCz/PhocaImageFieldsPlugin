@@ -7,7 +7,7 @@
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>
 	<license>GNU/GPL</license>
-	<version>6.0.0Beta9</version>
+	<version>6.0.0Beta10</version>
 	<description>PLG_FIELDS_PHOCAIMAGE_DESCRIPTION</description>
 	<namespace path="src">Phoca\Plugin\Fields\Phocaimage</namespace>
 	<projectName>PhocaImageFieldsPlugin</projectName>
@@ -43,14 +43,18 @@
 	<config>
         <fields name="params">
             <fieldset name="basic">
-                <field name="folder_structure" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_FOLDER_STRUCTURE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_FOLDER_STRUCTURE_DESC" default="article_id" validate="options">
-                    <option value="article_id">PLG_FIELDS_PHOCAIMAGE_FOLDER_ARTICLE_ID</option>
-                    <option value="year_month">PLG_FIELDS_PHOCAIMAGE_FOLDER_YEAR_MONTH</option>
-                </field>
 
                 <field name="folder" type="text" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_FOLDER_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_FOLDER_DESC" default="phocaimage" filter="cmd"/>
 
                 <field name="subfolder" type="text" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_SUBFOLDER_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_SUBFOLDER_DESC" default="" filter="cmd"/>
+
+                <field name="folder_structure" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_FOLDER_STRUCTURE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_FOLDER_STRUCTURE_DESC" default="article_id" validate="options">
+                    <option value="article_id">PLG_FIELDS_PHOCAIMAGE_FOLDER_ARTICLE_ID</option>
+                    <option value="year">PLG_FIELDS_PHOCAIMAGE_FOLDER_YEAR</option>
+                    <option value="year_month">PLG_FIELDS_PHOCAIMAGE_FOLDER_YEAR_MONTH</option>
+                    <option value="year_month_day">PLG_FIELDS_PHOCAIMAGE_FOLDER_YEAR_MONTH_DAY</option>
+                </field>
+
                 <field name="display" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_DISPLAY_LABEL" default="3" validate="options">
                     <option value="1">PLG_FIELDS_PHOCAIMAGE_AFTER_TITLE</option>
                     <option value="2">PLG_FIELDS_PHOCAIMAGE_BEFORE_CONTENT</option>
