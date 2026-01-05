@@ -204,15 +204,26 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         $item    = $event->getArgument('item');
 
         // Position 2: Traditional Before Content (Joomla Result)
+        // We prepend it to text so it is displayed after intro or full image
         $result  = $this->renderPositionedGallery($context, $item, '2');
         if ($result !== '') {
-            $event->addResult($result);
+            if (isset($item->text)) {
+                $item->text = $result . $item->text;
+            }
+            if (isset($item->introtext)) {
+                $item->introtext = $result . $item->introtext;
+            }
         }
 
         // Position 3: After Content, but before pagination (Append to text)
         $result3 = $this->renderPositionedGallery($context, $item, '3');
         if ($result3 !== '') {
-            $item->text .= $result3;
+            if (isset($item->text)) {
+                $item->text .= $result3;
+            }
+            if (isset($item->introtext)) {
+                $item->introtext .= $result3;
+            }
         }
     }
 

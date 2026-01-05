@@ -45,9 +45,11 @@ $galleryId = 'phocaimage-gallery-' . $articleId;
 
 $altValueType = $this->params->get('alt_value', 3);
 $enableCaption = (bool) $this->params->get('enable_caption', 1);
+$layout = $this->params->get('layout', 'pi-grid');
+$layoutClass = $layout === 'pi-flex' ? ' pi-flex' : ' pi-grid';
 ?>
 
-<div id="<?php echo $galleryId; ?>" class="phocaimage-gallery">
+<div id="<?php echo $galleryId; ?>" class="phocaimage-gallery<?php echo $layoutClass ?>">
     <?php foreach ($images as $image):
         $filename = $image['filename'];
         $original = $basePath . $filename;

@@ -6,12 +6,12 @@
 		<element>phocaimage</element>
 		<folder>fields</folder>
 		<type>plugin</type>
-		<version>6.0.0Beta8</version>
-		<infourl title="Phoca Image Fields Plugin 6.0.0Beta8">https://www.phoca.cz/</infourl>
+		<version>6.0.0Beta9</version>
+		<infourl title="Phoca Image Fields Plugin 6.0.0Beta9">https://www.phoca.cz/</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip">https://github.com/PhocaCz/PhocaImageFieldsPlugin/releases/download/6.0.0Beta8/plg_fields_phocaimage_v6.0.0Beta8.zip</downloadurl>
+			<downloadurl type="full" format="zip">https://github.com/PhocaCz/PhocaImageFieldsPlugin/releases/download/6.0.0Beta9/plg_fields_phocaimage_v6.0.0Beta9.zip</downloadurl>
 		</downloads>
-		<sha512>e706e49e8fafcea7a6c93ebb328664957f81231336f12d0db00644caadd54d9033435a8d700bba032885743b885549f7928f2ede885a67fec6d1a9b220f443a6</sha512>
+		<sha512>82aea38b7ec1962aaa263d0310683cd01318ec47d0e1588862fe849084354549cbec48f7e89e8a3ad7d497708537d0b76edf5b4d4036150fbdfec0a78f7258d7</sha512>
 		<tags>
 			<tag>stable</tag>
 		</tags>
