@@ -44,6 +44,20 @@
     object-fit: cover;
 }
 
+@media (max-width: 767.98px) {
+    .phocaimage-gallery.pi-flex a {
+        flex: 0 0 100%;
+        height: auto;
+    }
+
+    .phocaimage-gallery.pi-flex img {
+        width: 100%;
+        height: auto;
+        min-width: 0;
+        object-fit: contain;
+    }
+}
+
 /* PhotoSwipe Caption */
 .pswp__custom-caption {
     font-size: 16px;
