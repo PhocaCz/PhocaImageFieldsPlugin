@@ -382,4 +382,29 @@ final class ImageHelper
             default => false,
         };
     }
+    /**
+     * Convert image to another format.
+     *
+     * @param   string  $sourcePath  Path to source image.
+     * @param   string  $targetPath  Path to target image.
+     * @param   string  $mimeType    Target mime type (e.g. image/webp).
+     * @param   int     $quality     Quality (0-100).
+     *
+     * @return  bool
+     *
+     * @since   1.0.0
+     */
+    public static function convert(string $sourcePath, string $targetPath, string $mimeType, int $quality): bool
+    {
+        $source = self::createFromFile($sourcePath);
+
+        if ($source === false) {
+            return false;
+        }
+
+        $result = self::saveImage($source, $targetPath, $mimeType, $quality);
+        imagedestroy($source);
+
+        return $result;
+    }
 }

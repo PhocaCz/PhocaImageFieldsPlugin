@@ -7,7 +7,7 @@
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>
 	<license>GNU/GPL</license>
-	<version>6.0.0Beta10</version>
+	<version>6.0.0Beta11</version>
 	<description>PLG_FIELDS_PHOCAIMAGE_DESCRIPTION</description>
 	<namespace path="src">Phoca\Plugin\Fields\Phocaimage</namespace>
 	<projectName>PhocaImageFieldsPlugin</projectName>
@@ -104,6 +104,13 @@
                 <field name="jpeg_quality" type="range" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_JPEG_QUALITY_LABEL" default="85" min="0" max="100" step="5"/>
                 <field name="webp_quality" type="range" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_WEBP_QUALITY_LABEL" default="80" min="0" max="100" step="5"/>
                 <field name="avif_quality" type="range" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_AVIF_QUALITY_LABEL" default="60" min="0" max="100" step="5"/>
+
+                <!-- possible performance problem
+                <field name="webp_transform" type="radio" layout="joomla.form.field.radio.switcher" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_WEBP_TRANSFORM_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_WEBP_TRANSFORM_DESC" default="0" class="btn-group btn-group-yesno">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+                -->
             </fieldset>
         </fields>
     </config>

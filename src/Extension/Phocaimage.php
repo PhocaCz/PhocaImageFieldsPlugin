@@ -520,6 +520,38 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
             return ['success' => false, 'message' => $file['name']. ": " . Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_MOVE_FILE')];
         }
 
+        // Transform to WebP if enable - possible performance problem, so te parameter is disabled
+        $webpTransform = 0;//(bool) $this->params->get('webp_transform', 0);
+        if ($webpTransform) {
+            $finfo    = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($destFile);
+
+            if ($mimeType !== 'image/webp') {
+                $pathInfo = pathinfo($filename);
+                // Check uniqueness for new filename
+                $newFilename = $pathInfo['filename'] . '.webp';
+                $newDestFile = $destPath . '/' . $newFilename;
+
+                $counter = 1;
+                while (file_exists($newDestFile)) {
+                    $newFilename = $pathInfo['filename'] . '_' . $counter . '.webp';
+                    $newDestFile = $destPath . '/' . $newFilename;
+                    $counter++;
+                }
+
+                $quality = (int) $this->params->get('webp_quality', 80);
+                if (ImageHelper::convert($destFile, $newDestFile, 'image/webp', $quality)) {
+                    // Delete original
+                    if (file_exists($destFile)) {
+                        unlink($destFile);
+                    }
+                    // Update variables to point to the new WebP file
+                    $filename = $newFilename;
+                    $destFile = $newDestFile;
+                }
+            }
+        }
+
         // Generate thumbnails
         $mediumSize = [
             'width'  => (int) $this->params->get('medium_width', 300),
@@ -745,7 +777,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         $permanentPath = str_replace($this->getBasePath() . '/', '', $permanentPath);
 
         $newValue = str_replace($tempPath, $permanentPath, $value);
-        
+
         // Update the value
         $query = $db->getQuery(true)
             ->update($db->quoteName('#__fields_values'))
