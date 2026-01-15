@@ -387,10 +387,47 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
             if (!Session::checkToken('get') && !Session::checkToken('post')) {
                 throw new \RuntimeException(Text::_('JINVALID_TOKEN'), 403);
             }
-
             $app    = $this->getApplication();
+            $user   = Factory::getUser();
+
+            // 1. Check if user is logged in
+            if ($user->guest) {
+                throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+            }
+
             $input  = $app->getInput();
             $action = $input->getCmd('action', '');
+            $articleId = $input->getInt('article_id', 0);
+
+            // 2. Check Permissions
+            $canDo = false;
+
+            if ($articleId == 0) {
+                // New Article - Check Create Permission
+                $canDo = $user->authorise('core.create', 'com_content');
+            } else {
+                // Existing Article - Check Edit Permission
+                $canDo = $user->authorise('core.edit', 'com_content.article.' . $articleId);
+
+                // Check Edit Own Permission if Edit failed
+                if (!$canDo && $user->authorise('core.edit.own', 'com_content.article.' . $articleId)) {
+                    // We need to verify that the user is indeed the owner of the article
+                    $db = $this->getDatabase();
+                    $query = $db->getQuery(true)
+                        ->select($db->quoteName('created_by'))
+                        ->from($db->quoteName('#__content'))
+                        ->where($db->quoteName('id') . ' = ' . $articleId);
+                    $ownerId = (int) $db->setQuery($query)->loadResult();
+
+                    if ($ownerId === $user->id) {
+                        $canDo = true;
+                    }
+                }
+            }
+
+            if (!$canDo) {
+                throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+            }
 
             $result = match ($action) {
                 'upload' => $this->handleUpload(),
