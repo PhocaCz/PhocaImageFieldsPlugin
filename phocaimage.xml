@@ -2,12 +2,12 @@
 <extension type="plugin" group="fields" method="upgrade" version="6.0">
 	<name>plg_fields_phocaimage</name>
 	<author>Jan Pavelka (www.phoca.cz)</author>
-	<creationDate>15/01/2026</creationDate>
+	<creationDate>16/01/2026</creationDate>
 	<authorEmail></authorEmail>
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>
 	<license>GNU/GPL</license>
-	<version>6.0.0Beta13</version>
+	<version>6.0.0Beta14</version>
 	<description>PLG_FIELDS_PHOCAIMAGE_DESCRIPTION</description>
 	<namespace path="src">Phoca\Plugin\Fields\Phocaimage</namespace>
 	<projectName>PhocaImageFieldsPlugin</projectName>
@@ -63,6 +63,7 @@
                 <field name="layout" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_LAYOUT_LABEL" default="default" validate="options">
                     <option value="pi-grid">PLG_FIELDS_PHOCAIMAGE_GRID</option>
                     <option value="pi-flex">PLG_FIELDS_PHOCAIMAGE_FLEX</option>
+                    <option value="pi-flex-fluid">PLG_FIELDS_PHOCAIMAGE_FLEX_FLUID</option>
                 </field>
 
 				<field name="alt_value" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_ALT_VALUE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_ALT_VALUE_DESC" default="3" validate="options">

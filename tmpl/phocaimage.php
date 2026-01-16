@@ -46,10 +46,11 @@ $galleryId = 'phocaimage-gallery-' . $articleId;
 $altValueType = $this->params->get('alt_value', 3);
 $enableCaption = (bool) $this->params->get('enable_caption', 1);
 $layout = $this->params->get('layout', 'pi-grid');
-$layoutClass = $layout === 'pi-flex' ? ' pi-flex' : ' pi-grid';
+$layoutClass = ' '.$layout;
+$countImages = count($images);
 ?>
 
-<div id="<?php echo $galleryId; ?>" class="phocaimage-gallery<?php echo $layoutClass ?>">
+<div id="<?php echo $galleryId; ?>" class="phocaimage-gallery<?php echo $layoutClass ?> pi-count-<?php echo $countImages ?>">
     <?php foreach ($images as $image):
         $filename = $image['filename'];
         $original = $basePath . $filename;
