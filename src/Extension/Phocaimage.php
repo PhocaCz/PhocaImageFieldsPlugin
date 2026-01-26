@@ -45,6 +45,14 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
 {
     use DatabaseAwareTrait;
 
+   /* public function __construct($subject, array $config = [])
+    {
+        parent::__construct($subject, $config);
+
+        $lang = Factory::getApplication()->getLanguage();
+        $lang->load('plg_fields_phocaimage', JPATH_ADMINISTRATOR, null, true);
+    }*/
+
     /**
      * Get the base path for image storage.
      *
