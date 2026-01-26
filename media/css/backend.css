@@ -110,3 +110,20 @@
     border-radius: 2px;
     transition: width 0.3s;
 }
+
+[data-bs-theme="dark"] {
+    .phocaimage-dropzone {
+        background: transparent;
+    }
+
+    .phocaimage-item {
+        background: #6c757d;
+        color: #f9f9f9;
+    }
+    .phocaimage-info {
+        background: transparent;
+    }
+    .phocaimage-filename {
+        color: #f9f9f9;
+    }
+}
