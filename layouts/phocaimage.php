@@ -27,7 +27,9 @@ $wrapperId = 'phocaimage-wrapper-' . $data['id'];
      data-upload-path="<?php echo $data['uploadPath']; ?>"
      data-csrf-token="<?php echo $data['csrfToken']; ?>"
      data-enable-caption="<?php echo (int)$data['enableCaption']; ?>"
-     data-enable-delete-all="<?php echo (int)$data['enableDeleteAll']; ?>">
+     data-enable-delete-all="<?php echo (int)$data['enableDeleteAll']; ?>"
+     data-max-file-uploads-batch="<?php echo (int)$data['maxFileUploadsBatch']; ?>"
+     data-max-images="<?php echo (int)$data['maxImages']; ?>">
 
     <!-- Hidden Input for Data Storage -->
     <input type="hidden" name="<?php echo $data['name']; ?>" id="<?php echo $data['id']; ?>" class="phocaimage-data"

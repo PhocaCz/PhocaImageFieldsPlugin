@@ -47,7 +47,9 @@ class PhocaImageUploader {
             fieldId: wrapper.dataset.fieldId,
             csrfToken: wrapper.dataset.csrfToken,
             enableCaption: parseInt(wrapper.dataset.enableCaption) === 1,
-            enableDeleteAll: parseInt(wrapper.dataset.enableDeleteAll) === 1
+            enableDeleteAll: parseInt(wrapper.dataset.enableDeleteAll) === 1,
+            maxFileUploadsBatch: parseInt(wrapper.dataset.maxFileUploadsBatch) || 5,
+            maxImages:       parseInt(wrapper.dataset.maxImages) || 50
         };
 
         this.init();
@@ -141,7 +143,7 @@ class PhocaImageUploader {
         });
     }
 
-    handleFiles(files) {
+    /* handleFiles(files) {
         if (!files.length) return;
 
         const formData = new FormData();
@@ -154,8 +156,91 @@ class PhocaImageUploader {
         }
 
         this.uploadFiles(formData);
+    }*/
+    handleFiles(files) {
+        if (!files.length) return;
+
+        const maxImages = this.config.maxImages;
+        if (maxImages > 0 && (this.images.length + files.length) > maxImages) {
+            this.showError(
+                Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_ERROR_MAX_IMAGES_EXCEEDED').replace('%s', maxImages)
+            );
+            return;
+        }
+
+        this.uploadFilesSequentially(Array.from(files));
     }
 
+    async uploadFilesSequentially(files) {
+        const BATCH_SIZE = this.config.maxFileUploadsBatch;
+        this.progressBar.style.display = 'block';
+        this.progressBar.style.width = '0%';
+        this.hideError();
+
+        const total = files.length;
+        let done = 0;
+
+        for (let i = 0; i < files.length; i += BATCH_SIZE) {
+            const batch = files.slice(i, i + BATCH_SIZE);
+            const formData = new FormData();
+            formData.append(this.config.csrfToken, 1);
+            formData.append('article_id', this.config.articleId);
+            formData.append('field_id', this.config.fieldId);
+            formData.append('existing_count', this.images.length);
+            batch.forEach(file => formData.append('phocaimage_files[]', file));
+
+            try {
+                await this.uploadBatch(formData);
+            } catch (e) {
+                this.showError(Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_NETWORK_ERROR_OCCURED'));
+            }
+
+            done += batch.length;
+            this.progressBar.style.width = ((done / total) * 100) + '%';
+        }
+
+        this.progressBar.style.display = 'none';
+    }
+
+    uploadBatch(formData) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', this.config.uploadUrl, true);
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        let pluginResult = Array.isArray(response.data)
+                            ? response.data[0]
+                            : response.data;
+
+                        if (pluginResult && pluginResult.success) {
+                            this.handleUploadSuccess(pluginResult);
+                        } else {
+                            let msg = Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_ERROR_UPLOAD_FAILED');
+                            if (pluginResult?.message) msg = pluginResult.message;
+                            else if (response.message) msg = response.message;
+                            this.showError(msg);
+                        }
+                    } catch (e) {
+                        this.showError(Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_ERROR_INVALID_SERVER_RESPONSE'));
+                    }
+                } else {
+                    this.showError(Joomla.Text._('PLG_FIELDS_PHOCAIMAGE_ERROR_UPLOAD_FAILED_WITH_STATUS') + ' ' + xhr.status);
+                }
+                resolve();
+            };
+
+            xhr.onerror = (e) => {
+                console.error('Network Error:', e);
+                reject(e);
+            };
+
+            xhr.send(formData);
+        });
+    }
+/*
     uploadFiles(formData) {
         this.progressBar.style.display = 'block';
         this.progressBar.style.width = '0%';
@@ -217,7 +302,7 @@ class PhocaImageUploader {
 
         xhr.send(formData);
     }
-
+*/
     handleUploadSuccess(response) {
 
         if (response.files) {

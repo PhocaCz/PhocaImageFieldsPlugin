@@ -155,6 +155,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         Text::script('PLG_FIELDS_PHOCAIMAGE_CAPTION');
         Text::script('PLG_FIELDS_PHOCAIMAGE_CAPTION_DESC');
         Text::script('PLG_FIELDS_PHOCAIMAGE_CONFIRM_DELETE_ALL');
+        Text::script('PLG_FIELDS_PHOCAIMAGE_ERROR_MAX_IMAGES_EXCEEDED');
 
 
         return $fieldNode;
@@ -469,9 +470,16 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         $articleId = $input->getInt('article_id', 0);
         $fieldId   = $input->getInt('field_id', 0);
         $files     = $input->files->get('phocaimage_files', [], 'array');
+        $existingCount = $input->getInt('existing_count', 50);
 
         if (empty($files)) {
             return ['success' => false, 'message' => Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_NO_FILE')];
+        }
+
+        // Enforce max images limit
+        $maxImages = (int) $this->params->get('max_images', 50);
+        if ($maxImages > 0 && ($existingCount + count($files)) > $maxImages) {
+            return ['success' => false, 'message' => Text::sprintf('PLG_FIELDS_PHOCAIMAGE_ERROR_MAX_IMAGES_EXCEEDED', $maxImages)];
         }
 
         // Determine upload path

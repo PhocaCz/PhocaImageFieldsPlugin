@@ -2,12 +2,12 @@
 <extension type="plugin" group="fields" method="upgrade" version="6.0">
 	<name>plg_fields_phocaimage</name>
 	<author>Jan Pavelka (www.phoca.cz)</author>
-	<creationDate>26/01/2026</creationDate>
+	<creationDate>30/03/2026</creationDate>
 	<authorEmail></authorEmail>
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>
 	<license>GNU/GPL</license>
-	<version>6.0.1</version>
+	<version>6.0.2</version>
 	<description>PLG_FIELDS_PHOCAIMAGE_DESCRIPTION</description>
 	<namespace path="src">Phoca\Plugin\Fields\Phocaimage</namespace>
 	<projectName>PhocaImageFieldsPlugin</projectName>
@@ -90,7 +90,10 @@
                     <option value="3">PLG_FIELDS_PHOCAIMAGE_BOTH_IMAGES</option>
                 </field>
 
+                <field name="max_file_uploads_batch" type="number" default="5" min="1" max="50" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_FILE_UPLOADS_BATCH_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_FILE_UPLOADS_BATCH_DESC"/>
+                <field name="max_images" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_IMAGES_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_IMAGES_DESC" default="50" min="0"/>
                 <field name="max_upload_size" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_DESC" default="5242880" min="1"/>
+
             </fieldset>
             <fieldset name="thumbnails" label="PLG_FIELDS_PHOCAIMAGE_FIELDSET_THUMBNAILS">
                 <field name="medium_width" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MEDIUM_WIDTH_LABEL" default="300" min="50" max="2000"/>
