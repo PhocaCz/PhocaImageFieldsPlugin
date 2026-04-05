@@ -1019,6 +1019,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
     private function syncArticleImage(int $articleId, string $title = ''): void
     {
         $syncType = (int) $this->params->get('sync_article_image', 0);
+        $introImageFormat = (int) $this->params->get('intro_image_format', 1);
         if ($syncType === 0) {
             return;
         }
@@ -1066,6 +1067,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         // Construct path to large thumbnail
         $uploadPath = $this->getPermanentPath($articleId);
         $thumbPath  = $uploadPath . '/phoca_thumb_l_' . $filename;
+        $thumbPathM  = $uploadPath . '/phoca_thumb_m_' . $filename;
 
         // Update article record
         $query = $db->getQuery(true)
@@ -1083,7 +1085,12 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
 
         // Intro Image sync - only if empty
         if (($syncType === 1 || $syncType === 3) && empty($articleImages['image_intro'])) {
-            $articleImages['image_intro'] = $thumbPath;
+
+            if ($introImageFormat == 2) {
+                $articleImages['image_intro'] = $thumbPathM;
+            } else {
+                $articleImages['image_intro'] = $thumbPath;
+            }
             if (!empty($title)) {
                 $articleImages['image_intro_alt'] = $title;
             }
