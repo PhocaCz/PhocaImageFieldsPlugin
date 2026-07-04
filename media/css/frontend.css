@@ -27,6 +27,20 @@
     display: block;
 }
 
+/* Remove Joomla's generic field-list bullet/indent when it wraps this gallery. */
+.fields-container:has(.phocaimage-gallery) {
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.fields-container > .field-entry:has(.phocaimage-gallery) {
+    list-style: none;
+}
+
+.fields-container > .field-entry > .field-value:has(.phocaimage-gallery) {
+    display: block;
+}
+
 
 
 /* Flex */

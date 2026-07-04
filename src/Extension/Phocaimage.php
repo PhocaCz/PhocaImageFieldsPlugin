@@ -176,18 +176,18 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
     {
         // Check if the field should be processed by us
         if ($field->type !== $this->type) {
-            return;
+            return '';
         }
 
-        $display = $this->params->get('display', '2');
+        $display = $this->getFieldDisplay($field);
 
-        // If display is set to any of the automatic positions (1, 2, 3), we return empty string here
-        // so that Joomla's FieldsHelper doesn't wrap it in its own UL/LI list.
+        // Automatic positions are rendered by this plugin's content events below.
+        // Returning an empty string here keeps Joomla from wrapping the gallery in
+        // the generic fields list, while display=0 remains available for {field ID}.
         if (in_array((string) $display, ['1', '2', '3'])) {
             return '';
         }
 
-        // If display is manual or hidden (0), we let it through but render it our way
         return $this->renderGallery($field, $item);
     }
 
@@ -263,7 +263,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
                 continue;
             }
 
-            $display = $this->params->get('display', '2');
+            $display = $this->getFieldDisplay($field);
 
             if ((string) $display === (string) $position) {
                 $output .= $this->renderGallery($field, $item);
@@ -271,6 +271,18 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
         }
 
         return $output;
+    }
+
+    /**
+     * Gets the Automatic Display setting for the custom field.
+     */
+    private function getFieldDisplay($field): string
+    {
+        if ($field->params instanceof Registry) {
+            return (string) $field->params->get('display', '2');
+        }
+
+        return '2';
     }
 
     /**
