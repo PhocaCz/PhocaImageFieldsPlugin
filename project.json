@@ -7,12 +7,12 @@
 	"extensionName": "Phoca Image Fields Plugin",
 	"projectInitials" : "PI",
 	"description": "Phoca Image Fields Plugin - article image custom field.",
-	"projectUrl": "https://www.phoca.cz/",
+	"projectUrl": "https://www.phoca.cz/phoca-image-fields-plugin",
 	"projectDocumentationUrl": "https://www.phoca.cz/documentation/",
 	"projectMainComponent": "",
 	"projectMainComponentInfoUrl": "",
 	"projectDemo" : {
-		"Phoca": "https://www.phoca.cz"
+		"Phoca (Demo)": "https://www.phoca.cz"
 	},
 	"projectColor": "#895ED1",
 	"nameSpace": "Phoca\\Plugin\\Fields\\Phocaimage"
