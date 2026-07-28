@@ -78,6 +78,96 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
     }
 
     /**
+     * Write hardening files (.htaccess for Apache, web.config for IIS) into an
+     * upload folder so that no file placed in it - regardless of extension - can
+     * ever be executed as a script by the webserver. This is defense-in-depth on
+     * top of the strict MIME-based extension allow-list enforced at upload time;
+     * it also protects any legacy files that may already exist on disk from
+     * earlier, less strict versions of this plugin.
+     *
+     * @param   string  $fullPath  Absolute filesystem path to the upload folder.
+     *
+     * @return  void
+     *
+     * @since   6.0.5
+     */
+    private function hardenUploadFolder(string $fullPath): void
+    {
+        $htaccessFile = $fullPath . '/.htaccess';
+        if (!is_file($htaccessFile)) {
+            $htaccess = <<<HTACCESS
+# Prevent execution of any script in this folder, regardless of extension.
+# This folder only ever contains user-uploaded image files.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+<FilesMatch "\.(?:php[0-9]?|phtml|pht|phar|shtml|shtm|sht|cgi|pl|py|asp|aspx|jsp|jspx|htaccess|htpasswd)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Belt-and-braces: also strip any handler mapping for these extensions.
+<IfModule mod_mime.c>
+    RemoveHandler .php .php3 .php4 .php5 .php7 .phtml .pht .phar .cgi .pl .py .asp .aspx .jsp .jspx .shtml .shtm .sht
+    RemoveType .php .php3 .php4 .php5 .php7 .phtml .pht .phar .cgi .pl .py .asp .aspx .jsp .jspx .shtml .shtm .sht
+</IfModule>
+
+Options -ExecCGI -Indexes
+AddType text/plain .php .php3 .php4 .php5 .php7 .phtml .pht .phar .cgi .pl .py .asp .aspx .jsp .jspx .shtml .shtm .sht
+
+HTACCESS;
+            @file_put_contents($htaccessFile, $htaccess);
+        }
+
+        $webConfigFile = $fullPath . '/web.config';
+        if (!is_file($webConfigFile)) {
+            $webConfig = <<<WEBCONFIG
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <handlers>
+            <clear />
+            <add name="StaticFile" path="*" verb="*" modules="StaticFileModule" resourceType="Either" requireAccess="Read" />
+        </handlers>
+        <security>
+            <requestFiltering>
+                <fileExtensions allowUnlisted="true">
+                    <add fileExtension=".php" allowed="false" />
+                    <add fileExtension=".phtml" allowed="false" />
+                    <add fileExtension=".asp" allowed="false" />
+                    <add fileExtension=".aspx" allowed="false" />
+                    <add fileExtension=".cgi" allowed="false" />
+                    <add fileExtension=".shtml" allowed="false" />
+                    <add fileExtension=".shtm" allowed="false" />
+                    <add fileExtension=".sht" allowed="false" />
+                </fileExtensions>
+            </requestFiltering>
+        </security>
+    </system.webServer>
+</configuration>
+
+WEBCONFIG;
+            @file_put_contents($webConfigFile, $webConfig);
+        }
+
+        if (!is_file($fullPath . '/index.html')) {
+            @file_put_contents($fullPath . '/index.html', '<!DOCTYPE html><title></title>');
+        }
+    }
+
+    /**
      * Affects constructor behavior. If true, language files will be loaded automatically.
      *
      * @var    bool
@@ -505,6 +595,12 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
             }
         }
 
+        // Defense-in-depth: ensure this (and any parent) upload folder cannot
+        // execute scripts even if a file with an unexpected extension ever ends
+        // up here, regardless of how it got there or what the webserver/OS
+        // considers executable.
+        $this->hardenUploadFolder($fullPath);
+
         $uploaded = [];
         $message = [];
 
@@ -558,17 +654,58 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
             ];
         }
 
-        // Validate file type
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'];
-        $finfo        = new \finfo(FILEINFO_MIME_TYPE);
-        $mimeType     = $finfo->file($file['tmp_name']);
-
-        if (!in_array($mimeType, $allowedMimes, true)) {
-            return ['success' => false, 'message' => $file['name']. ": " .  Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_INVALID_TYPE')];
+        if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            return ['success' => false, 'message' => $file['name']. ": " . Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_INVALID_TYPE')];
         }
 
-        // Sanitize filename
-        $filename = $this->sanitizeFilename($file['name']);
+        // Strictly and fully decode the uploaded file before anything else
+        // happens to it. This is a real decode (GD actually parses the whole
+        // image), not just a header check, so it cannot be fooled by a file
+        // that merely *starts* with a valid-looking image header followed by
+        // arbitrary attacker data (e.g. a GIF header followed by an embedded PHP payload).
+        //
+        // Nothing is written anywhere - not to the upload folder, not under
+        // any name - unless this decode fully succeeds. If it fails, we stop
+        // immediately: the file is never moved, never renamed, never touched
+        // again. PHP removes the original tmp upload automatically at the end
+        // of the request, so no trace of a rejected file is left on disk.
+        $decoded = ImageHelper::decodeAndValidate($file['tmp_name']);
+
+        if ($decoded === null) {
+            // This is worth recording: a file that claims (via its name and/or
+            // a superficial Content-Type) to be an image but does not decode as
+            // one is a strong signal of a deliberate upload-bypass attempt
+            // (extension smuggling, polyglot payloads, truncated/corrupted
+            // crafted files, etc.), not an ordinary user error.
+            try {
+                Log::add(
+                    sprintf(
+                        'Rejected upload "%s" from user #%d (IP %s): file is not a valid, fully-decodable image.',
+                        $file['name'],
+                        Factory::getUser()->id,
+                        $this->getApplication()->getInput()->server->getString('REMOTE_ADDR', '')
+                    ),
+                    Log::WARNING,
+                    'plg_fields_phocaimage'
+                );
+            } catch (\Throwable $e) {
+                // Logging must never block/break the rejection itself.
+            }
+
+            return ['success' => false, 'message' => $file['name']. ": " . Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_INVALID_TYPE')];
+        }
+
+        $mimeType      = $decoded['mime'];
+        $safeExtension = $decoded['extension'];
+        $image         = $decoded['image'];
+
+        // The stored extension is derived exclusively from the detected MIME type
+        // of the successfully decoded image, never from the uploaded filename.
+        // This makes it impossible for an attacker to control the extension the
+        // file is saved with (e.g. .shtml, .phtml, .php, .pht, double
+        // extensions, etc.), which is what determines whether the webserver
+        // will execute it - independent of the file's actual byte content.
+        $filename = $this->sanitizeFilename($file['name'], $safeExtension);
         $destFile = $destPath . '/' . $filename;
 
         // Handle duplicate filenames
@@ -580,8 +717,20 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
             $counter++;
         }
 
-        // Move uploaded file
-        if (!move_uploaded_file($file['tmp_name'], $destFile)) {
+        // Write the file by RE-ENCODING the decoded pixel data, rather than
+        // copying the uploaded bytes verbatim. This guarantees the file that
+        // lands in the web-accessible folder contains only genuine image data
+        // GD itself produced - any trailing/appended bytes an attacker put
+        // after a valid image header are discarded, not just hidden behind a
+        // safe extension.
+        $quality = $this->getQualityForMimeType($mimeType);
+        $saved   = ImageHelper::encodeAndSave($image, $destFile, $mimeType, $quality);
+        imagedestroy($image);
+
+        if (!$saved) {
+            if (file_exists($destFile)) {
+                @unlink($destFile);
+            }
             return ['success' => false, 'message' => $file['name']. ": " . Text::_('PLG_FIELDS_PHOCAIMAGE_ERROR_MOVE_FILE')];
         }
 
@@ -939,20 +1088,39 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
     /**
      * Sanitize filename for safe storage.
      *
-     * @param   string  $filename  The original filename.
+     * IMPORTANT: The extension used for the stored file is always the
+     * $safeExtension argument, derived by the caller from server-side content
+     * inspection (finfo/getimagesize) of the uploaded file. The extension
+     * present in the original, client-supplied $filename is intentionally
+     * ignored and discarded here - it must never be trusted, since it is
+     * entirely attacker-controlled and is what determines whether a
+     * webserver will execute the file (e.g. .shtml, .phtml, .php5, .pht,
+     * double extensions like .jpg.php, etc.).
+     *
+     * @param   string  $filename       The original (untrusted) filename, used only for its base name.
+     * @param   string  $safeExtension  The validated extension to force onto the stored file.
      *
      * @return  string
      *
      * @since   1.0.0
      */
-    private function sanitizeFilename(string $filename): string
+    private function sanitizeFilename(string $filename, string $safeExtension): string
     {
-        // Get extension
-        $pathInfo  = pathinfo($filename);
-        $extension = strtolower($pathInfo['extension'] ?? '');
-        $name      = $pathInfo['filename'];
+        // Only allow known-safe extensions to be applied, regardless of caller input.
+        $allowedExtensions = ['jpg', 'png', 'gif', 'webp', 'avif'];
+        $safeExtension = strtolower($safeExtension);
+        if (!in_array($safeExtension, $allowedExtensions, true)) {
+            // Should never happen given current callers, but fail safe.
+            $safeExtension = 'bin';
+        }
+
+        // Get just the name portion of the original filename; its extension is discarded.
+        $pathInfo = pathinfo($filename);
+        $name     = $pathInfo['filename'] ?? '';
 
         // Remove any non-alphanumeric characters except dash and underscore
+        // (this also strips any embedded dots, preventing double-extension tricks
+        // such as "shell.php" being used as the "name" part of "shell.php.jpg").
         $name = preg_replace('/[^a-zA-Z0-9_-]/', '_', $name);
 
         // Remove multiple underscores
@@ -966,7 +1134,7 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
             $name = 'image_' . time();
         }
 
-        return $name . '.' . $extension;
+        return $name . '.' . $safeExtension;
     }
 
     /**

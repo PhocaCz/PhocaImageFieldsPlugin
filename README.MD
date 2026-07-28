@@ -20,65 +20,61 @@ Our compliance with the principles of free and open-source software is establish
 
 *This repository is a shared community resource dedicated to the global open-source ecosystem.*
 
+### Community Feedback & Contributions
 
-## Project page
+We welcome your feedback and active involvement. You can join the development and follow the progress on public, independent GitHub pages at [https://github.com/PhocaCz](https://github.com/PhocaCz).
+Any feedback, bug reports, feature suggestions, or code improvements can be submitted transparently via **GitHub Issues** or **Pull Requests** within the respective repository.
 
-[Phoca Image Fields Plugin](https://www.phoca.cz/)
+### Accompanying External Resources
 
+If you need additional information beyond this GitHub repository, further documentation, updates, and community channels are available on the following external websites:
 
+#### External Project Information
 
-## Documentation
-
-[Documentation](https://www.phoca.cz/documentation/)
-
-
-
-
-
-## Support
-
-[Phoca Forum](https://www.phoca.cz/forum)
-
-:bell: [Phoca Forum RSS](https://www.phoca.cz/forum/app.php/feed)
+- [Phoca Image Fields Plugin](https://www.phoca.cz/)
+- [Project is listed on Joomla Extensions Directory](https://extensions.joomla.org/)
+- [Project is listed on Phoca download directory](https://www.phoca.cz/download)
 
 
+#### External Documentation
 
-## News
-
-[Phoca News](https://www.phoca.cz/news)
-
-:bell: [Phoca News RSS](https://www.phoca.cz/news?format=feed&type=rss)
-
-:bell: [Phoca Latest Releases RSS](https://www.phoca.cz/download/feed/111?format=feed&type=rss)
+- [Documentation](https://www.phoca.cz/documentation/)
 
 
+#### External Community Support
 
-## Demo
+- [Phoca Forum](https://www.phoca.cz/forum)
+- [Joomla Forum](https://forum.joomla.org/)
+- [Joomlaportal.cz Forum - Czech](https://www.joomlaportal.cz/forum)
+- [Joomla.de Supportforum - German](https://forum.joomla.de/)
+- :bell: [Phoca Forum RSS](https://www.phoca.cz/forum/app.php/feed)
 
-[Phoca](https://www.phoca.cz)
+
+#### External News & Feeds
+
+- [Phoca News](https://www.phoca.cz/news)
+- [Joomlaportal.cz News](https://www.joomlaportal.cz/novinky)
+- :bell: [Phoca News RSS](https://www.phoca.cz/news?format=feed&type=rss)
+- :bell: [Phoca Latest Releases RSS](https://www.phoca.cz/download/feed/111?format=feed&type=rss)
 
 
+#### Demo
 
+- [Phoca](https://www.phoca.cz)
 
+### Version (Joomla! 6.x)
+6.0.5
 
-## License
+### License
 
 GNU/GPL
 
-
-
 This project is open source project - feel free to contribute! Thank you.
 
-
-
-## Social Media
+### Social Media
 
 - [Phoca on Facebook](https://www.facebook.com/Phoca.cz)
-
 - [Phoca on X (Twitter)](https://twitter.com/PhocaCz)
-
 - [Phoca on YouTube](https://www.youtube.com/user/phocavideos)
-
 - [Phoca on GitHub](https://github.com/PhocaCz)
-
 - [Phoca on Reddit](https://www.reddit.com/user/PhocaCz)

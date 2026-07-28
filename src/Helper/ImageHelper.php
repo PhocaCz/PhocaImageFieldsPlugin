@@ -38,6 +38,111 @@ final class ImageHelper
     ];
 
     /**
+     * MIME type to file extension mapping for the formats this plugin accepts.
+     *
+     * @var    array<string, string>
+     * @since  6.0.6
+     */
+    public const MIME_EXTENSIONS = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/gif'  => 'gif',
+        'image/webp' => 'webp',
+        'image/avif' => 'avif',
+    ];
+
+    /**
+     * Strictly validate that a file is a genuine, fully-decodable image of an
+     * allowed type, and return the decoded GD resource.
+     *
+     * Unlike getimagesize() (which only parses header bytes and can be fooled by
+     * files that are truncated, corrupted, or have arbitrary trailing/appended
+     * data after a valid-looking header - the classic GIF-header-plus-embedded-PHP-payload
+     * polyglot pattern), this performs a real, full decode of the image data
+     * using the same GD function that will later be used to process it. If the
+     * file cannot be completely and cleanly decoded, it is rejected outright.
+     *
+     * Nothing is written to disk by this method. The caller must not write the
+     * original uploaded bytes anywhere; instead it should re-encode the
+     * returned GD resource to disk, which guarantees the stored file contains
+     * only genuine pixel data and cannot carry any attacker-appended payload.
+     *
+     * @param   string  $path  Absolute path to the file to validate (e.g. a PHP tmp upload).
+     *
+     * @return  array{mime: string, extension: string, image: \GdImage}|null  Null if the file is not a valid, supported image.
+     *
+     * @since   6.0.6
+     */
+    public static function decodeAndValidate(string $path): ?array
+    {
+        if (!is_file($path)) {
+            return null;
+        }
+
+        $finfo    = new \finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($path);
+
+        if (!isset(self::MIME_HANDLERS[$mimeType], self::MIME_EXTENSIONS[$mimeType])) {
+            return null;
+        }
+
+        $handler = self::MIME_HANDLERS[$mimeType];
+
+        if (!function_exists($handler)) {
+            return null;
+        }
+
+        // Fully decode the file. Suppress the E_WARNING that GD's decoders emit
+        // for malformed input - a decode failure is communicated to us via the
+        // return value (false), and we handle it explicitly below rather than
+        // letting a PHP warning leak internal file paths or clutter logs.
+        $image = @$handler($path);
+
+        if (!($image instanceof \GdImage)) {
+            return null;
+        }
+
+        // Reject zero-dimension or absurd images (also guards against decoder
+        // edge cases / decompression-bomb style dimensions).
+        $width  = imagesx($image);
+        $height = imagesy($image);
+
+        if ($width < 1 || $height < 1 || $width > 20000 || $height > 20000) {
+            imagedestroy($image);
+            return null;
+        }
+
+        return [
+            'mime'      => $mimeType,
+            'extension' => self::MIME_EXTENSIONS[$mimeType],
+            'image'     => $image,
+        ];
+    }
+
+    /**
+     * Re-encode and save a decoded GD image resource to disk in its own format.
+     *
+     * This is the only way this plugin should ever persist an uploaded image:
+     * writing out freshly re-encoded pixel data (rather than copying the
+     * uploaded bytes verbatim) means the stored file cannot contain any
+     * attacker-appended trailing data, embedded scripts, or other payload -
+     * only what GD itself chooses to write for that format.
+     *
+     * @param   \GdImage  $image     The decoded GD image (e.g. from decodeAndValidate()).
+     * @param   string    $path      Destination path to write to.
+     * @param   string    $mimeType  MIME type determining the output format.
+     * @param   int       $quality   Quality setting (0-100), where applicable.
+     *
+     * @return  bool
+     *
+     * @since   6.0.6
+     */
+    public static function encodeAndSave(\GdImage $image, string $path, string $mimeType, int $quality): bool
+    {
+        return self::saveImage($image, $path, $mimeType, $quality);
+    }
+
+    /**
      * Create GD image resource from file.
      *
      * @param   string  $path  The path to the image file.

@@ -37,8 +37,9 @@ $wa->usePreset('plg_fields_phocaimage.frontend');
 // Determine path
 // Logic needs to match Extension/Phocaimage.php getUploadPath
 // Since we are in the plugin context, we can use $this helper
+
 $articleId = $item->id;
-$articleTitle = $item->title;
+$articleTitle = $item->title ?? '';
 $basePath  = $this->getUploadPath((int) $articleId, (int) $field->id) . '/';
 
 $galleryId = 'phocaimage-gallery-' . $articleId;
