@@ -85,6 +85,14 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
      * it also protects any legacy files that may already exist on disk from
      * earlier, less strict versions of this plugin.
      *
+     * Writing .htaccess/web.config is controlled by the "harden_upload_folder"
+     * plugin parameter (enabled by default), because some hosts/server
+     * configurations reject or misinterpret directives in these files (e.g.
+     * missing AllowOverride, IIS handler mapping conflicts, other software
+     * already managing its own .htaccess in the same tree). The index.html
+     * placeholder (directory listing protection) is unconditional and always
+     * written, since it cannot break a server configuration.
+     *
      * @param   string  $fullPath  Absolute filesystem path to the upload folder.
      *
      * @return  void
@@ -93,14 +101,18 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
      */
     private function hardenUploadFolder(string $fullPath): void
     {
-        $htaccessFile = $fullPath . '/.htaccess';
-        if (!is_file($htaccessFile)) {
-            $htaccess = <<<HTACCESS
+        $writeServerConfigFiles = (bool) $this->params->get('harden_upload_folder', 1);
+
+        if ($writeServerConfigFiles) {
+            $htaccessFile = $fullPath . '/.htaccess';
+            if (!is_file($htaccessFile)) {
+                $htaccess = <<<HTACCESS
 # Prevent execution of any script in this folder, regardless of extension.
 # This folder only ever contains user-uploaded image files.
-<IfModule mod_php.c>
-    php_flag engine off
-</IfModule>
+
+# <IfModule mod_php.c>
+#    php_flag engine off
+# </IfModule>
 <IfModule mod_php7.c>
     php_flag engine off
 </IfModule>
@@ -124,16 +136,16 @@ final class Phocaimage extends FieldsPlugin implements SubscriberInterface
     RemoveType .php .php3 .php4 .php5 .php7 .phtml .pht .phar .cgi .pl .py .asp .aspx .jsp .jspx .shtml .shtm .sht
 </IfModule>
 
-Options -ExecCGI -Indexes
+# Options -ExecCGI -Indexes
 AddType text/plain .php .php3 .php4 .php5 .php7 .phtml .pht .phar .cgi .pl .py .asp .aspx .jsp .jspx .shtml .shtm .sht
 
 HTACCESS;
-            @file_put_contents($htaccessFile, $htaccess);
-        }
+                @file_put_contents($htaccessFile, $htaccess);
+            }
 
-        $webConfigFile = $fullPath . '/web.config';
-        if (!is_file($webConfigFile)) {
-            $webConfig = <<<WEBCONFIG
+            $webConfigFile = $fullPath . '/web.config';
+            if (!is_file($webConfigFile)) {
+                $webConfig = <<<WEBCONFIG
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <system.webServer>
@@ -159,9 +171,13 @@ HTACCESS;
 </configuration>
 
 WEBCONFIG;
-            @file_put_contents($webConfigFile, $webConfig);
+                @file_put_contents($webConfigFile, $webConfig);
+            }
         }
 
+        // Directory-listing protection is unconditional: it cannot break a
+        // server configuration the way .htaccess/web.config directives can,
+        // so it is written regardless of the "harden_upload_folder" setting.
         if (!is_file($fullPath . '/index.html')) {
             @file_put_contents($fullPath . '/index.html', '<!DOCTYPE html><title></title>');
         }

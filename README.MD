@@ -31,7 +31,7 @@ If you need additional information beyond this GitHub repository, further docume
 
 #### External Project Information
 
-- [Phoca Image Fields Plugin](https://www.phoca.cz/)
+- [Phoca Image Fields Plugin](https://www.phoca.cz/phoca-image-fields-plugin)
 - [Project is listed on Joomla Extensions Directory](https://extensions.joomla.org/)
 - [Project is listed on Phoca download directory](https://www.phoca.cz/download)
 
@@ -60,10 +60,10 @@ If you need additional information beyond this GitHub repository, further docume
 
 #### Demo
 
-- [Phoca](https://www.phoca.cz)
+- [Phoca (Demo)](https://www.phoca.cz)
 
 ### Version (Joomla! 6.x)
-6.0.5
+6.0.6
 
 ### License
 

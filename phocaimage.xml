@@ -2,12 +2,12 @@
 <extension type="plugin" group="fields" method="upgrade" version="6.0">
 	<name>plg_fields_phocaimage</name>
 	<author>Jan Pavelka (www.phoca.cz)</author>
-	<creationDate>28/07/2026</creationDate>
+	<creationDate>31/07/2026</creationDate>
 	<authorEmail></authorEmail>
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>
 	<license>GNU/GPL</license>
-	<version>6.0.5</version>
+	<version>6.0.6</version>
 	<description>PLG_FIELDS_PHOCAIMAGE_DESCRIPTION</description>
 	<namespace path="src">Phoca\Plugin\Fields\Phocaimage</namespace>
 	<projectName>PhocaImageFieldsPlugin</projectName>
@@ -100,6 +100,11 @@
                 <field name="max_file_uploads_batch" type="number" default="5" min="1" max="50" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_FILE_UPLOADS_BATCH_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_FILE_UPLOADS_BATCH_DESC"/>
                 <field name="max_images" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_IMAGES_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_IMAGES_DESC" default="50" min="0"/>
                 <field name="max_upload_size" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_UPLOAD_SIZE_DESC" default="5242880" min="1"/>
+
+                <field name="harden_upload_folder" type="radio" layout="joomla.form.field.radio.switcher" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_HARDEN_UPLOAD_FOLDER_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_HARDEN_UPLOAD_FOLDER_DESC" default="1" class="btn-group btn-group-yesno">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
 
             </fieldset>
             <fieldset name="thumbnails" label="PLG_FIELDS_PHOCAIMAGE_FIELDSET_THUMBNAILS">
