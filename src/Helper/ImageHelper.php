@@ -52,6 +52,22 @@ final class ImageHelper
     ];
 
     /**
+     * Allowed resize modes for resizeToFit() (used when NOT cropping).
+     *
+     * @var    array<int, string>
+     * @since  6.0.7
+     */
+    private const RESIZE_MODES = ['fit', 'width', 'height', 'stretch', 'fit_shrink_only'];
+
+    /**
+     * Allowed crop anchor positions for cropToFit().
+     *
+     * @var    array<int, string>
+     * @since  6.0.7
+     */
+    private const CROP_POSITIONS = ['center', 'top', 'bottom', 'left', 'right'];
+
+    /**
      * Strictly validate that a file is a genuine, fully-decodable image of an
      * allowed type, and return the decoded GD resource.
      *
@@ -176,12 +192,19 @@ final class ImageHelper
     /**
      * Generate medium and large thumbnails from source image.
      *
-     * @param   string              $sourcePath   Path to the source image.
-     * @param   string              $destDir      Destination directory for thumbnails.
-     * @param   array<string, int>  $mediumSize   Medium thumbnail dimensions ['width', 'height'].
-     * @param   array<string, int>  $largeSize    Large thumbnail dimensions ['width', 'height'].
-     * @param   bool                $cropToFit    Whether to crop to exact dimensions.
-     * @param   int                 $quality      Output quality (0-100).
+     * @param   string              $sourcePath     Path to the source image.
+     * @param   string              $destDir        Destination directory for thumbnails.
+     * @param   array<string, int>  $mediumSize     Medium thumbnail dimensions ['width', 'height'].
+     * @param   array<string, int>  $largeSize      Large thumbnail dimensions ['width', 'height'].
+     * @param   bool                $cropMedium     Whether to crop the medium thumbnail to exact dimensions.
+     * @param   bool                $cropLarge      Whether to crop the large thumbnail to exact dimensions.
+     * @param   int                 $quality        Output quality (0-100).
+     * @param   string              $noCropMode     Resize mode used for a thumbnail when it is NOT being cropped
+     *                                               (fit|width|height|stretch|fit_shrink_only). Has no effect on a
+     *                                               thumbnail that IS being cropped.
+     * @param   string              $cropPosition   Anchor position used when a thumbnail IS being cropped
+     *                                               (center|top|bottom|left|right). Has no effect on a thumbnail
+     *                                               that is not being cropped.
      *
      * @return  array<string, string>  Paths to generated thumbnails.
      *
@@ -192,8 +215,11 @@ final class ImageHelper
         string $destDir,
         array $mediumSize,
         array $largeSize,
-        bool $cropToFit,
-        int $quality
+        bool $cropMedium,
+        bool $cropLarge,
+        int $quality,
+        string $noCropMode = 'fit',
+        string $cropPosition = 'center'
     ): array {
         $source = self::createFromFile($sourcePath);
 
@@ -213,7 +239,9 @@ final class ImageHelper
             $source,
             $mediumSize['width'],
             $mediumSize['height'],
-            $cropToFit
+            $cropMedium,
+            $noCropMode,
+            $cropPosition
         );
 
         $mediumPath = $destDir . '/phoca_thumb_m_' . $filename;
@@ -227,7 +255,9 @@ final class ImageHelper
             $source,
             $largeSize['width'],
             $largeSize['height'],
-            $cropToFit
+            $cropLarge,
+            $noCropMode,
+            $cropPosition
         );
 
         $largePath = $destDir . '/phoca_thumb_l_' . $filename;
@@ -312,6 +342,8 @@ final class ImageHelper
      * @param   int       $targetWidth   Target width in pixels.
      * @param   int       $targetHeight  Target height in pixels.
      * @param   bool      $cropToFit     Whether to crop to exact dimensions.
+     * @param   string    $noCropMode    Resize mode used when NOT cropping (fit|width|height|stretch|fit_shrink_only).
+     * @param   string    $cropPosition  Anchor position used when cropping (center|top|bottom|left|right).
      *
      * @return  \GdImage
      *
@@ -321,26 +353,44 @@ final class ImageHelper
         \GdImage $image,
         int $targetWidth,
         int $targetHeight,
-        bool $cropToFit
+        bool $cropToFit,
+        string $noCropMode = 'fit',
+        string $cropPosition = 'center'
     ): \GdImage {
         $srcWidth  = imagesx($image);
         $srcHeight = imagesy($image);
 
         if ($cropToFit) {
-            return self::cropToFit($image, $srcWidth, $srcHeight, $targetWidth, $targetHeight);
+            return self::cropToFit($image, $srcWidth, $srcHeight, $targetWidth, $targetHeight, $cropPosition);
         }
 
-        return self::resizeToFit($image, $srcWidth, $srcHeight, $targetWidth, $targetHeight);
+        return self::resizeToFit($image, $srcWidth, $srcHeight, $targetWidth, $targetHeight, $noCropMode);
     }
 
     /**
-     * Resize image to fit within dimensions while maintaining aspect ratio.
+     * Resize image to fit within dimensions, in one of several modes.
+     *
+     * This is only used for a thumbnail size that is NOT being cropped (see
+     * $noCropMode in generateThumbnails() / resizeAndCrop()) - when cropping
+     * is enabled for a size, cropToFit() is used instead and this mode
+     * setting has no effect.
      *
      * @param   \GdImage  $image         The source GD image.
      * @param   int       $srcWidth      Source width.
      * @param   int       $srcHeight     Source height.
      * @param   int       $targetWidth   Target width.
      * @param   int       $targetHeight  Target height.
+     * @param   string    $mode          One of:
+     *                                   - fit (default): scale to fit entirely inside the target box,
+     *                                     preserving aspect ratio. The whole image stays visible.
+     *                                   - width: scale to exactly match target width; height follows
+     *                                     the aspect ratio and target height is ignored.
+     *                                   - height: scale to exactly match target height; width follows
+     *                                     the aspect ratio and target width is ignored.
+     *                                   - stretch: force to exactly target width AND height, distorting
+     *                                     the aspect ratio if they don't match.
+     *                                   - fit_shrink_only: same as 'fit', but never upscales - an image
+     *                                     already smaller than the target box is left at its own size.
      *
      * @return  \GdImage
      *
@@ -351,20 +401,75 @@ final class ImageHelper
         int $srcWidth,
         int $srcHeight,
         int $targetWidth,
-        int $targetHeight
+        int $targetHeight,
+        string $mode = 'fit'
     ): \GdImage {
-        $srcRatio    = $srcWidth / $srcHeight;
-        $targetRatio = $targetWidth / $targetHeight;
-
-        if ($srcRatio > $targetRatio) {
-            // Source is wider - fit to width
-            $newWidth  = $targetWidth;
-            $newHeight = (int) round($targetWidth / $srcRatio);
-        } else {
-            // Source is taller - fit to height
-            $newHeight = $targetHeight;
-            $newWidth  = (int) round($targetHeight * $srcRatio);
+        if (!in_array($mode, self::RESIZE_MODES, true)) {
+            $mode = 'fit';
         }
+
+        switch ($mode) {
+            case 'width':
+                // Scales the image to strictly match the target width. Target
+                // height is ignored; new height follows the aspect ratio.
+                // Use case: blog post images, fluid column layouts.
+                $scale     = $targetWidth / $srcWidth;
+                $newWidth  = $targetWidth;
+                $newHeight = (int) round($srcHeight * $scale);
+                break;
+
+            case 'height':
+                // Scales the image to strictly match the target height. Target
+                // width is ignored; new width follows the aspect ratio.
+                // Use case: horizontal scrolling carousels, masonry galleries.
+                $scale     = $targetHeight / $srcHeight;
+                $newWidth  = (int) round($srcWidth * $scale);
+                $newHeight = $targetHeight;
+                break;
+
+            case 'stretch':
+                // Forces the image to exactly match target width and height.
+                // Will distort (squash/stretch) the image if aspect ratios differ.
+                // Use case: strict legacy UI requirements or specific graphic elements.
+                $newWidth  = $targetWidth;
+                $newHeight = $targetHeight;
+                break;
+
+            case 'fit_shrink_only':
+                // Same as 'fit', but never upscales: if the original is already
+                // smaller than the target box in both dimensions, it is kept at
+                // its own size. Otherwise falls through to standard 'fit' logic.
+                // Use case: avoid blowing up small icons/logos into blurry thumbnails.
+                if ($srcWidth <= $targetWidth && $srcHeight <= $targetHeight) {
+                    $newWidth  = $srcWidth;
+                    $newHeight = $srcHeight;
+                    break;
+                }
+                // Falls through intentionally when the source is larger than the target.
+            case 'fit':
+            default:
+                // Scales the image to fit entirely inside the target box while
+                // preserving the aspect ratio. Use case: standard thumbnails
+                // where the whole image must stay visible.
+                $srcRatio    = $srcWidth / $srcHeight;
+                $targetRatio = $targetWidth / $targetHeight;
+
+                if ($srcRatio > $targetRatio) {
+                    // Source is wider - fit to width
+                    $newWidth  = $targetWidth;
+                    $newHeight = (int) round($targetWidth / $srcRatio);
+                } else {
+                    // Source is taller - fit to height
+                    $newHeight = $targetHeight;
+                    $newWidth  = (int) round($targetHeight * $srcRatio);
+                }
+                break;
+        }
+
+        // Guard against degenerate 0px dimensions from rounding on extreme
+        // aspect ratios (e.g. a 1px-tall source image).
+        $newWidth  = max(1, $newWidth);
+        $newHeight = max(1, $newHeight);
 
         $resized = imagecreatetruecolor($newWidth, $newHeight);
         self::preserveTransparency($resized, $image);
@@ -386,13 +491,21 @@ final class ImageHelper
     }
 
     /**
-     * Crop image to exact dimensions using center cropping.
+     * Crop image to exact dimensions.
      *
      * @param   \GdImage  $image         The source GD image.
      * @param   int       $srcWidth      Source width.
      * @param   int       $srcHeight     Source height.
      * @param   int       $targetWidth   Target width.
      * @param   int       $targetHeight  Target height.
+     * @param   string    $position      Which part of the image to keep visible when cropping:
+     *                                   center (default), top, bottom, left, or right. top/bottom
+     *                                   only have an effect when height is being cropped (source is
+     *                                   taller than the target ratio); left/right only have an effect
+     *                                   when width is being cropped (source is wider than the target
+     *                                   ratio). Use case: e.g. 'top' for portraits so faces near the
+     *                                   top of the frame aren't cut off; 'bottom' for a footer strip
+     *                                   of logos where the subject sits low in the frame.
      *
      * @return  \GdImage
      *
@@ -403,23 +516,40 @@ final class ImageHelper
         int $srcWidth,
         int $srcHeight,
         int $targetWidth,
-        int $targetHeight
+        int $targetHeight,
+        string $position = 'center'
     ): \GdImage {
+        if (!in_array($position, self::CROP_POSITIONS, true)) {
+            $position = 'center';
+        }
+
         $srcRatio    = $srcWidth / $srcHeight;
         $targetRatio = $targetWidth / $targetHeight;
 
         if ($srcRatio > $targetRatio) {
-            // Source is wider - crop width
+            // Source is wider - crop width (trimming the left/right edges)
             $cropHeight = $srcHeight;
             $cropWidth  = (int) round($srcHeight * $targetRatio);
-            $cropX      = (int) round(($srcWidth - $cropWidth) / 2);
             $cropY      = 0;
+
+            $available = $srcWidth - $cropWidth;
+            $cropX     = match ($position) {
+                'left'  => 0,
+                'right' => $available,
+                default => (int) round($available / 2),
+            };
         } else {
-            // Source is taller - crop height
+            // Source is taller - crop height (trimming the top/bottom edges)
             $cropWidth  = $srcWidth;
             $cropHeight = (int) round($srcWidth / $targetRatio);
             $cropX      = 0;
-            $cropY      = (int) round(($srcHeight - $cropHeight) / 2);
+
+            $available = $srcHeight - $cropHeight;
+            $cropY     = match ($position) {
+                'top'    => 0,
+                'bottom' => $available,
+                default  => (int) round($available / 2),
+            };
         }
 
         $cropped = imagecreatetruecolor($targetWidth, $targetHeight);

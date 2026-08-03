@@ -2,12 +2,12 @@
 <extension type="plugin" group="fields" method="upgrade" version="6.0">
 	<name>plg_fields_phocaimage</name>
 	<author>Jan Pavelka (www.phoca.cz)</author>
-	<creationDate>31/07/2026</creationDate>
+	<creationDate>03/08/2026</creationDate>
 	<authorEmail></authorEmail>
 	<authorUrl>https://www.phoca.cz</authorUrl>
 	<copyright>Jan Pavelka</copyright>
 	<license>GNU/GPL</license>
-	<version>6.0.6</version>
+	<version>6.0.7</version>
 	<description>PLG_FIELDS_PHOCAIMAGE_DESCRIPTION</description>
 	<namespace path="src">Phoca\Plugin\Fields\Phocaimage</namespace>
 	<projectName>PhocaImageFieldsPlugin</projectName>
@@ -94,7 +94,7 @@
 
                 <field name="intro_image_format" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_INTRO_IMAGE_FORMAT_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_INTRO_IMAGE_FORMAT_DESC" default="1" validate="options">
                     <option value="1">PLG_FIELDS_PHOCAIMAGE_LARGE_THUMBNAIL</option>
-                    <option value="2">PLG_FIELDS_PHOCAIMAGE_SMALL_THUMBNAIL</option>
+                    <option value="2">PLG_FIELDS_PHOCAIMAGE_MEDIUM_THUMBNAIL</option>
                 </field>
 
                 <field name="max_file_uploads_batch" type="number" default="5" min="1" max="50" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_FILE_UPLOADS_BATCH_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_MAX_FILE_UPLOADS_BATCH_DESC"/>
@@ -112,11 +112,36 @@
                 <field name="medium_height" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_MEDIUM_HEIGHT_LABEL" default="200" min="50" max="2000"/>
                 <field name="large_width" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_LARGE_WIDTH_LABEL" default="1200" min="100" max="4000"/>
                 <field name="large_height" type="number" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_LARGE_HEIGHT_LABEL" default="800" min="100" max="4000"/>
-                <field name="crop_to_fit" type="radio" layout="joomla.form.field.radio.switcher" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_CROP_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_CROP_DESC" default="1" class="btn-group btn-group-yesno">
-                     <option value="0">JNO</option>
-					<option value="1">JYES</option>
-
+                <field name="crop_to_fit" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_CROP_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_CROP_DESC" default="both" validate="options">
+                    <option value="no">PLG_FIELDS_PHOCAIMAGE_CROP_NONE</option>
+                    <option value="medium">PLG_FIELDS_PHOCAIMAGE_CROP_MEDIUM_ONLY</option>
+                    <option value="large">PLG_FIELDS_PHOCAIMAGE_CROP_LARGE_ONLY</option>
+                    <option value="both">PLG_FIELDS_PHOCAIMAGE_CROP_BOTH</option>
                 </field>
+
+                <field name="crop_position" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_CROP_POSITION_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_CROP_POSITION_DESC" default="center" validate="options" showon="crop_to_fit!:no">
+                    <option value="center">PLG_FIELDS_PHOCAIMAGE_CROP_POSITION_CENTER</option>
+                    <option value="top">PLG_FIELDS_PHOCAIMAGE_CROP_POSITION_TOP</option>
+                    <option value="bottom">PLG_FIELDS_PHOCAIMAGE_CROP_POSITION_BOTTOM</option>
+                    <option value="left">PLG_FIELDS_PHOCAIMAGE_CROP_POSITION_LEFT</option>
+                    <option value="right">PLG_FIELDS_PHOCAIMAGE_CROP_POSITION_RIGHT</option>
+                </field>
+
+                <field name="no_crop_resize_mode" type="list" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_NO_CROP_RESIZE_MODE_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_NO_CROP_RESIZE_MODE_DESC" default="fit" validate="options" showon="crop_to_fit!:both">
+                    <option value="fit">PLG_FIELDS_PHOCAIMAGE_RESIZE_MODE_FIT</option>
+                    <option value="fit_shrink_only">PLG_FIELDS_PHOCAIMAGE_RESIZE_MODE_FIT_SHRINK_ONLY</option>
+                    <option value="width">PLG_FIELDS_PHOCAIMAGE_RESIZE_MODE_WIDTH</option>
+                    <option value="height">PLG_FIELDS_PHOCAIMAGE_RESIZE_MODE_HEIGHT</option>
+                    <option value="stretch">PLG_FIELDS_PHOCAIMAGE_RESIZE_MODE_STRETCH</option>
+                </field>
+
+
+
+                <field name="keep_original" type="radio" layout="joomla.form.field.radio.switcher" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_KEEP_ORIGINAL_LABEL" description="PLG_FIELDS_PHOCAIMAGE_PARAMS_KEEP_ORIGINAL_DESC" default="1" class="btn-group btn-group-yesno">
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+
                 <field name="jpeg_quality" type="range" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_JPEG_QUALITY_LABEL" default="85" min="0" max="100" step="5"/>
                 <field name="webp_quality" type="range" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_WEBP_QUALITY_LABEL" default="80" min="0" max="100" step="5"/>
                 <field name="avif_quality" type="range" label="PLG_FIELDS_PHOCAIMAGE_PARAMS_AVIF_QUALITY_LABEL" default="60" min="0" max="100" step="5"/>

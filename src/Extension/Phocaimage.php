@@ -715,6 +715,15 @@ WEBCONFIG;
         $safeExtension = $decoded['extension'];
         $image         = $decoded['image'];
 
+        // Capture the original dimensions now, from the decoded image itself,
+        // rather than re-reading them from disk later via getimagesize(). This
+        // is required because the original file on disk may be deleted below
+        // (see keep_original) once thumbnails have been generated - and it's
+        // also simply more reliable than a second round-trip through the
+        // filesystem for information we already have in memory.
+        $origWidth  = imagesx($image);
+        $origHeight = imagesy($image);
+
         // The stored extension is derived exclusively from the detected MIME type
         // of the successfully decoded image, never from the uploaded filename.
         // This makes it impossible for an attacker to control the extension the
@@ -791,7 +800,22 @@ WEBCONFIG;
             'width'  => (int) $this->params->get('large_width', 1200),
             'height' => (int) $this->params->get('large_height', 800),
         ];
-        $cropToFit = (bool) $this->params->get('crop_to_fit', false);
+
+        // crop_to_fit now selects WHICH thumbnail size(s) get cropped to exact
+        // dimensions rather than a single on/off switch for both:
+        //   no     - neither thumbnail is cropped (both use the no-crop resize mode)
+        //   medium - only the medium thumbnail is cropped
+        //   large  - only the large thumbnail is cropped
+        //   both   - both thumbnails are cropped (default, matches the old "Yes" behavior)
+        $cropMode   = (string) $this->params->get('crop_to_fit', 'both');
+        $cropMedium = in_array($cropMode, ['medium', 'both'], true);
+        $cropLarge  = in_array($cropMode, ['large', 'both'], true);
+
+        // Only relevant for a size that is NOT being cropped (see $cropMode above).
+        $noCropResizeMode = (string) $this->params->get('no_crop_resize_mode', 'fit');
+
+        // Only relevant for a size that IS being cropped.
+        $cropPosition = (string) $this->params->get('crop_position', 'center');
 
         // Get mime type for quality
         $finfo    = new \finfo(FILEINFO_MIME_TYPE);
@@ -803,25 +827,32 @@ WEBCONFIG;
             $destPath,
             $mediumSize,
             $largeSize,
-            $cropToFit,
-            $quality
+            $cropMedium,
+            $cropLarge,
+            $quality,
+            $noCropResizeMode,
+            $cropPosition
         );
 
-        // Get image dimensions for PhotoSwipe safely
-        $imageSize = @getimagesize($destFile);
-        $width     = 0;
-        $height    = 0;
-
-        if ($imageSize) {
-            $width  = (int) $imageSize[0];
-            $height = (int) $imageSize[1];
+        // Optionally remove the original full-size image once thumbnails
+        // exist, keeping only the thumbnails (saves disk space on large
+        // uploads). This only ever happens if BOTH thumbnails were actually
+        // generated successfully - if generation failed for either size, the
+        // original is kept regardless of this setting, since it's the only
+        // remaining fallback the frontend/backend gallery can display (see
+        // backend-uploader.js's "falling back to original" behavior).
+        $keepOriginal = (bool) $this->params->get('keep_original', 1);
+        if (!$keepOriginal && isset($thumbnails['medium'], $thumbnails['large'])) {
+            if (file_exists($destFile)) {
+                @unlink($destFile);
+            }
         }
 
         return [
             'success'    => true,
             'filename'   => $filename,
-            'width'      => $width,
-            'height'     => $height,
+            'width'      => $origWidth,
+            'height'     => $origHeight,
             'thumbnails' => $thumbnails,
         ];
     }

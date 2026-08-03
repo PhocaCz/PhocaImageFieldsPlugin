@@ -63,7 +63,7 @@ If you need additional information beyond this GitHub repository, further docume
 - [Phoca (Demo)](https://www.phoca.cz)
 
 ### Version (Joomla! 6.x)
-6.0.6
+6.0.7
 
 ### License
 
